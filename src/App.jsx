@@ -29,7 +29,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <h2>Users2</h2>
+        <h2>Users</h2>
         <ul>
           {users.map((user) => (
             <li key={user.id}>
