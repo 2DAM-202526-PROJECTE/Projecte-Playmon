@@ -3,7 +3,7 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import { useEffect } from 'react'
-
+import Header from './components/Header'
 
 function App() {
   const [users, setUsers] = useState([])
@@ -29,7 +29,8 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <h2>Users</h2>
+        <Header />
+        <h2>Users2</h2>
         <ul>
           {users.map((user) => (
             <li key={user.id}>
