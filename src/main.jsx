@@ -6,6 +6,6 @@ import LoginSingup from './screens/login/LoginSingup.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LoginSingup />
+    <App />
   </StrictMode>,
 )

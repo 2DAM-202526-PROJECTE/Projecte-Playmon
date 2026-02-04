@@ -7,6 +7,7 @@ import {
 // Pantalles
 import HomeScreen from './screens/home/Home.jsx'
 import PerfilScreen from './screens/perfil/Perfil.jsx'
+import LoginSingup from './screens/login/LoginSingup.jsx'
 
 const App = () => {
     return (
@@ -18,6 +19,9 @@ const App = () => {
                     />
                     <Route path="/perfil"
                         element={<PerfilScreen/>} 
+                    />
+                    <Route path="/login"
+                        element={<LoginSingup/>} 
                     />
                 </Routes>
             </div>
