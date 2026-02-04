@@ -8,6 +8,7 @@ import {
 import HomeScreen from './screens/home/Home.jsx'
 import PerfilScreen from './screens/perfil/Perfil.jsx'
 import LoginSingup from './screens/login/LoginSingup.jsx'
+import FluxSubscripcio from './screens/subscripcio/FluxSubscripcio.jsx'
 
 const App = () => {
     return (
@@ -22,6 +23,9 @@ const App = () => {
                     />
                     <Route path="/login"
                         element={<LoginSingup/>} 
+                    />
+                    <Route path='/plan_subscripcio'
+                        element={<FluxSubscripcio/>} 
                     />
                 </Routes>
             </div>
