@@ -1,0 +1,11 @@
+import axios from "axios";
+
+const movieBaseUrl = "https://api.themoviedb.org/3"
+const api_key = "fdf457c53c98d9f517d0dc9ebb60c203"
+
+const getTrendingVideos = () => axios.get(movieBaseUrl +
+    "/trending/all/week?api_key=" + api_key);
+
+export default {
+    getTrendingVideos
+}
