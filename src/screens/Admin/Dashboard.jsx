@@ -1,7 +1,7 @@
 // src/pages/AdminDashboard.jsx
 import { useMemo, useState, useEffect } from "react";
 
-import SideBarCompte from "../../components/Sidebar/SideBarCompte";
+import SideBarCompte from "../../features/compte/perfil/components/SideBarCompte";
 
 
 export default function AdminDashboard() {

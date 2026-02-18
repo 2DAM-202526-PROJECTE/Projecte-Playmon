@@ -1,4 +1,3 @@
-// src/components/Sidebar/SideBarCompte.jsx
 export default function SideBarCompte({ active = "inici", onSelect }) {
   const items = [
     { id: "inici", label: "Inici", icon: HomeIcon, color: "bg-blue-100 text-blue-600" },
