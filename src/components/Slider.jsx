@@ -28,11 +28,11 @@ function Slider() {
     }
     return (
         <div>
-            <HiChevronLeft className="hidden md:block text-black text-[30px] absolute
-            mx-8 mt-[168px] cursor-pointer "
+            <HiChevronLeft className="hidden md:block text-white hover:text-[#CC8400] text-[40px] absolute
+            mx-8 mt-[148px] cursor-pointer transition-all duration-300 ease-in-out z-10"
                 onClick={() => sliderLeft(elementRef.current)} />
-            <HiChevronRight className="hidden md:block text-black text-[30px] absolute
-            mx-8 mt-[168px] cursor-pointer right-0"
+            <HiChevronRight className="hidden md:block text-white hover:text-[#CC8400] text-[40px] absolute
+            mx-8 mt-[148px] cursor-pointer right-0 transition-all duration-300 ease-in-out z-10"
                 onClick={() => sliderRight(elementRef.current)} />
 
             <div className='flex overflow-x-auto w-full px-16 py-4
