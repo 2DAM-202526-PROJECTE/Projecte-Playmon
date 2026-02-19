@@ -1,29 +1,19 @@
-import { useState } from "react";
-import SideBarCompte from "../components/SideBarCompte";
-import PerfilCard from "../components/PerfilCard";
-import defaultAvatar from '@/assets/aura.png';
-import CameraIcon from '@/assets/camera_icon.svg';
-import './Perfil.css'
-import '/src/index.css'
+import { Outlet } from "react-router-dom";
+import SideBarCompte from "@/features/compte/perfil/components/SideBarCompte";
+import "./styles/Perfil.css";
+import "/src/index.css";
 
 export default function Perfil() {
-  const [activeSection, setActiveSection] = useState("inici");
-
-  // Placeholder per a l'usuari, despres canvia amb l'integracio de l'api
-  const user = {
-    name: "Eloi",
-    email: "eloicortiella@iesebre.com",
-    avatar: defaultAvatar,
-  };
-
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-6 px-5 py-7 lg:grid-cols-[280px_1fr]">
         {/* Sidebar */}
-        <SideBarCompte active={activeSection} onSelect={setActiveSection} />
+        <aside className="lg:sticky lg:top-4 lg:self-start">
+          <SideBarCompte />
+        </aside>
 
         {/* Contingut */}
-        <main className="flex flex-col gap-5">
+        <main className="flex min-w-0 flex-col gap-5">
           {/* Header (títol + search) */}
           <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -40,13 +30,8 @@ export default function Perfil() {
             </div>
           </header>
 
-          <PerfilCard
-            user={user}
-            cameraIcon={CameraIcon}
-            onEditProfile={() => console.log("Editar perfil")}
-            onChangePhoto={() => console.log("Canviar foto")}
-            onManagePlan={() => console.log("Gestionar pla")}
-          />
+          {/* Secció renderitzada per rutes */}
+          <Outlet />
         </main>
       </div>
     </div>

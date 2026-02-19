@@ -1,160 +1,151 @@
-export default function SideBarCompte({ active = "inici", onSelect }) {
-  const items = [
-    { id: "inici", label: "Inici", icon: HomeIcon, color: "bg-blue-100 text-blue-600" },
-    { id: "info", label: "Informació personal", icon: UserIcon, color: "bg-green-100 text-green-700" },
-    { id: "seguretat", label: "Seguretat i inici de sessió", icon: LockIcon, color: "bg-sky-100 text-sky-700" },
-    { id: "contrasenya", label: "Contrasenya", icon: KeyIcon, color: "bg-indigo-100 text-indigo-700" },
-    { id: "connexions", label: "Connexions de tercers", icon: LinkIcon, color: "bg-cyan-100 text-cyan-700" },
-    { id: "privadesa", label: "Dades i privadesa", icon: ShieldIcon, color: "bg-purple-100 text-purple-700" },
-    { id: "pagaments", label: "Pagaments i subscripcions", icon: CardIcon, color: "bg-orange-100 text-orange-700" },
-  ];
+import { NavLink } from "react-router-dom";
 
+const items = [
+  {
+    to: "/compte/inici",
+    label: "Inici",
+    Icon: HomeIcon,
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    to: "/compte/informacio-personal",
+    label: "Informació personal",
+    Icon: UserIcon,
+    color: "bg-green-100 text-green-700",
+  },
+  {
+    to: "/compte/seguretat",
+    label: "Seguretat i inici de sessió",
+    Icon: LockIcon,
+    color: "bg-sky-100 text-sky-700",
+  },
+  {
+    to: "/compte/contrasenya",
+    label: "Contrasenya",
+    Icon: KeyIcon,
+    color: "bg-indigo-100 text-indigo-700",
+  },
+  {
+    to: "/compte/connexions",
+    label: "Connexions de tercers",
+    Icon: LinkIcon,
+    color: "bg-cyan-100 text-cyan-700",
+  },
+  {
+    to: "/compte/privadesa",
+    label: "Dades i privadesa",
+    Icon: ShieldIcon,
+    color: "bg-purple-100 text-purple-700",
+  },
+  {
+    to: "/compte/pagaments",
+    label: "Pagaments i subscripcions",
+    Icon: CardIcon,
+    color: "bg-orange-100 text-orange-700",
+  },
+];
+
+export default function SideBarCompte() {
   return (
-    <aside className="sticky top-4 self-start">
-      <div className="mb-3 pl-2 text-sm font-semibold text-slate-800">Playmon Compte</div>
+    <aside className="self-start">
+      <div className="mb-3 pl-2 text-sm font-semibold text-slate-800">
+        Playmon Compte
+      </div>
 
       <nav className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-black/5">
         <div className="flex flex-col gap-1">
-          {items.map((it) => {
-            const isActive = active === it.id;
-            const Icon = it.icon;
-
-            return (
-              <button
-                key={it.id}
-                type="button"
-                onClick={() => onSelect?.(it.id)}
-                className={[
+          {items.map(({ to, label, Icon, color }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                [
                   "group flex w-full items-center gap-3 rounded-full px-3 py-2 text-left text-sm transition",
-                  isActive ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-50",
-                ].join(" ")}
-              >
-                <span
-                  className={[
-                    "grid h-9 w-9 place-items-center rounded-full",
-                    isActive ? "bg-blue-100 text-blue-700" : it.color,
-                  ].join(" ")}
-                >
-                  <Icon />
-                </span>
+                  isActive
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-slate-700 hover:bg-slate-50",
+                ].join(" ")
+              }
+              aria-current={({ isActive }) => (isActive ? "page" : undefined)}
+            >
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={[
+                      "grid h-9 w-9 place-items-center rounded-full",
+                      isActive ? "bg-blue-100 text-blue-700" : color,
+                    ].join(" ")}
+                  >
+                    <Icon />
+                  </span>
 
-                <span className={isActive ? "font-semibold" : "font-medium"}>
-                  {it.label}
-                </span>
-              </button>
-            );
-          })}
+                  <span className={isActive ? "font-semibold" : "font-medium"}>
+                    {label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
         </div>
       </nav>
     </aside>
   );
 }
 
-/* Iconos en format SVG */
+/* ICONES SVG */
 function HomeIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10.5Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />
     </svg>
   );
 }
-
 function UserIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path
-        d="M4 21a8 8 0 0 1 16 0"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
     </svg>
   );
 }
-
 function LockIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M7 11V8a5 5 0 0 1 10 0v3"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M6.5 11h11A1.5 1.5 0 0 1 19 12.5v7A1.5 1.5 0 0 1 17.5 21h-11A1.5 1.5 0 0 1 5 19.5v-7A1.5 1.5 0 0 1 6.5 11Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
     </svg>
   );
 }
-
 function KeyIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M21 8a5 5 0 1 1-9.6 2H3v4h3v3h3v-3h3.4A5 5 0 0 1 21 8Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 2l-2 2m0 0 3 3-2 2-3-3m2-2-7 7" />
+      <circle cx="7" cy="17" r="3" />
+      <path d="M10 17h4l2-2" />
     </svg>
   );
 }
-
 function LinkIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 4" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 1 0 7.07 7.07L14 20" />
     </svg>
   );
 }
-
 function ShieldIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M12 2 20 6v7c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6l8-4Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z" />
+      <path d="M9 12l2 2 4-4" />
     </svg>
   );
 }
-
 function CardIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path d="M3 10h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 10h18" />
     </svg>
   );
 }

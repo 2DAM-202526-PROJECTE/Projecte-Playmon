@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { useEffect } from 'react'
-import viteLogo from '/public/vite.svg'
-import reactLogo from '/src/assets/react.svg'
 import './Home.css'
 import '/src/App.css'
 
