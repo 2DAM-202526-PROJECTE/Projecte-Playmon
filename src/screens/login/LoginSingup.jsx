@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { TbLockPassword } from "react-icons/tb";
 import { MdAlternateEmail } from "react-icons/md";
 import { IoMdContact } from "react-icons/io";
 
 export const LoginSingup = () => {
     const [action, setAction] = useState("Iniciar Sessió"); // o "Registrarse"
+    const navigate = useNavigate();
 
     // Inputs controlats
     const [form, setForm] = useState({
@@ -92,8 +94,15 @@ export const LoginSingup = () => {
 
             const data = await res.json().catch(() => ({}));
 
-            setFeedback({ type: "success", text: "Login OK!" });
+            if (!res.ok) {
+                throw new Error(data?.error || `HTTP ${res.status}`);
+            }
+
+            //Potser caldria guardar token
+
+            setFeedback({ type: "success", text: "Sessió iniciada. Redirigint.." });
             // aquí normalment guardariem token i navegariem
+        navigate("/perfil");
         } catch (e) {
             setFeedback({ type: "error", text: e?.message || "Error fent login" });
         } finally {
