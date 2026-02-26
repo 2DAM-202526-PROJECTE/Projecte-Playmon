@@ -6,7 +6,6 @@ import {
 } from 'react-router-dom';
 // Pantalles
 import HomeScreen from '@/screens/home/Home.jsx'
-import PerfilScreen from '@/features/compte/perfil/pages/Perfil.jsx'
 import LoginSingup from '@/screens/login/LoginSingup.jsx'
 import AdminDashboard from '@/screens/Admin/Dashboard.jsx'
 import CompteLayout from '@/features/compte/perfil/routes/CompteLayout.jsx';

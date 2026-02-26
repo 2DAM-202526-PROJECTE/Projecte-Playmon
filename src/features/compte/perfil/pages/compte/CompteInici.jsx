@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PerfilCard from "@/features/compte/perfil/pages/PerfilCard";
 import ModalEditarPerfil from "@/features/compte/perfil/pages/compte/ModelEditarPerfil";
+import ModalCanviarAvatar from "@/features/compte/perfil/pages/compte/ModelEditarAvatar";
 
 import defaultAvatar from "@/assets/perfilDefecte.png";
 import CameraIcon from "@/assets/camera_icon.svg";
@@ -13,6 +14,7 @@ export default function CompteInici() {
   });
 
   const [modalEditarObert, setModalEditarObert] = useState(false);
+  const [modalAvatarObert, setModalAvatarObert] = useState(false);
 
   useEffect(() => {
     console.log("modalEditarObert (canvi):", modalEditarObert);
@@ -21,6 +23,34 @@ export default function CompteInici() {
   const obrirModalEditar = () => {
     console.log("Editar perfil");
     setModalEditarObert(true);
+  };
+
+  const obrirModalAvatar = () => {
+    console.log("OBRIR MODAL AVATAR");
+    setModalAvatarObert(true);
+  };
+
+  const avatarLocalRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (avatarLocalRef.current) URL.revokeObjectURL(avatarLocalRef.current);
+    };
+  }, []);
+
+  const guardarAvatar = async (fitxer) => {
+    await new Promise((r) => setTimeout(r, 250));
+
+    const url = URL.createObjectURL(fitxer);
+
+    if (avatarLocalRef.current) URL.revokeObjectURL(avatarLocalRef.current);
+    avatarLocalRef.current = url;
+
+    setUser((prev) => ({ ...prev, avatar: url }));
+  };
+
+  const eliminarAvatar = () => {
+    setUser((prev) => ({ ...prev, avatar: null }));
   };
 
   const guardarPerfil = async (dades) => {
@@ -33,9 +63,8 @@ export default function CompteInici() {
       <PerfilCard
         user={user}
         cameraIcon={CameraIcon}
-        onEditProfile={obrirModalEditar}
-        onChangePhoto={() => console.log("Canviar foto")}
-        onManagePlan={() => console.log("Gestionar pla")}
+        onEditProfile={() => setModalEditarObert(true)}
+        onChangePhoto={() => setModalAvatarObert(true)}
       />
 
       <ModalEditarPerfil
@@ -43,6 +72,14 @@ export default function CompteInici() {
         user={user}
         onTancar={() => setModalEditarObert(false)}
         onGuardar={guardarPerfil}
+      />
+
+      <ModalCanviarAvatar
+        obert={modalAvatarObert}
+        avatarActual={user.avatar}
+        onTancar={() => setModalAvatarObert(false)}
+        onGuardar={guardarAvatar}
+        onEliminar={eliminarAvatar}
       />
     </>
   );

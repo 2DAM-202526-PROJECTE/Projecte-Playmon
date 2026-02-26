@@ -146,7 +146,7 @@ export default function ModalEditarPerfil({ obert, user, onTancar, onGuardar }) 
                 className="mt-2 w-full cursor-not-allowed rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-black/10 outline-none"
               />
               <p className="mt-2 text-xs text-slate-500">
-                (De moment) l’email no es pot canviar des d’ací.
+                (De moment) l’email no es pot canviar des d’aquí.
               </p>
             </div>
 

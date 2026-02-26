@@ -6,5 +6,6 @@ export default function CompteSeguretat() {
       titol="Seguretat i inici de sessió"
       descripcio="Revisa accessos, dispositius i opcions de seguretat."
     />
+    
   );
 }
