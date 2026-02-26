@@ -23,7 +23,7 @@ const App = () => {
       <div className="app">
         <Routes>
           <Route path="/"
-            element={<HomeScreen />}
+            element={<LoginSingup />}
           />
           
           <Route path="/compte" element={<CompteLayout />}>
