@@ -1,6 +1,8 @@
 // src/api/httpClient.js
 const API_BASE_URL = (import.meta.env.VITE_API_URL || "https://playmonserver.vercel.app/api").replace(/\/$/, "");
 
+export { API_BASE_URL };
+
 export async function httpClient(path, options = {}) {
     const token = localStorage.getItem("authToken");
 

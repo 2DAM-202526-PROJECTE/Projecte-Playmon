@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import PerfilCard from "@/features/compte/perfil/pages/PerfilCard";
 import ModalEditarPerfil from "@/features/compte/perfil/pages/compte/ModelEditarPerfil";
 import ModalCanviarAvatar from "@/features/compte/perfil/pages/compte/ModelEditarAvatar";
 import { getCurrentUser, updateCurrentUser } from "@/api/authApi";
+import { uploadAvatar } from "@/api/usersApi";
 
 import defaultAvatar from "@/assets/perfilDefecte.png";
 import CameraIcon from "@/assets/camera_icon.svg";
@@ -34,24 +35,16 @@ export default function CompteInici() {
     setModalAvatarObert(true);
   };
 
-  const avatarLocalRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (avatarLocalRef.current) URL.revokeObjectURL(avatarLocalRef.current);
-    };
-  }, []);
-
   const guardarAvatar = async (fitxer) => {
-    await new Promise((r) => setTimeout(r, 250));
+    const authUser = getCurrentUser();
+    if (!authUser?.id) {
+      throw new Error("User not authenticated");
+    }
 
-    const url = URL.createObjectURL(fitxer);
+    const { avatar_url } = await uploadAvatar(authUser.id, fitxer);
 
-    if (avatarLocalRef.current) URL.revokeObjectURL(avatarLocalRef.current);
-    avatarLocalRef.current = url;
-
-    setUser((prev) => ({ ...prev, avatar: url }));
-    updateCurrentUser({ avatar: url });
+    setUser((prev) => ({ ...prev, avatar: avatar_url }));
+    updateCurrentUser({ avatar: avatar_url });
   };
 
   const eliminarAvatar = () => {
