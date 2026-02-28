@@ -61,7 +61,7 @@ export const LoginSingup = () => {
 
     const submitLogin = async () => {
         if (!canSubmit) {
-            setFeedback({ type: "error", text: "Omple email i contrasenya." });
+            setFeedback({ type: "error", text: "Omple usuari/email i contrasenya." });
             return;
         }
 
@@ -150,10 +150,10 @@ export const LoginSingup = () => {
                     <div className="flex items-center bg-black/40 border border-white/5 rounded-xl px-4 py-3 transition-all focus-within:border-[#CC8400]/50 focus-within:bg-black/60 group">
                         <MdAlternateEmail className="text-2xl text-gray-400 group-focus-within:text-[#CC8400] transition-colors" />
                         <input
-                            type="email"
+                            type={isRegister ? "email" : "text"}
                             value={form.email}
                             onChange={setField("email")}
-                            placeholder="Correu Electronic"
+                            placeholder={isRegister ? "Correu Electronic" : "Usuari o Email"}
                             className="bg-transparent border-none outline-none text-white pl-4 w-full placeholder-gray-500 font-medium"
                         />
                     </div>
