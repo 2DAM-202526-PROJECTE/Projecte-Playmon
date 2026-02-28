@@ -16,6 +16,7 @@ import CompteContrasenya from "@/features/compte/perfil/pages/compte/CompteContr
 import CompteConnexions from "@/features/compte/perfil/pages/compte/CompteConnexions.jsx";
 import ComptePrivadesa from "@/features/compte/perfil/pages/compte/ComptePrivadesa.jsx";
 import ComptePagaments from "@/features/compte/perfil/pages/compte/ComptePagaments.jsx";
+import NotFound from '@/screens/NotFound/NotFound.jsx';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 const App = () => {
@@ -44,6 +45,9 @@ const App = () => {
           <Route path="/dashboard"
             element={<ProtectedRoute element={<AdminDashboard />} />}
           />
+          
+          {/* Catch-all 404 route - must be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>
