@@ -1,22 +1,20 @@
 // import TargetaSeccioCompte from "@/features/compte/perfil/pages/TargetaSeccioCompte";
 import React from "react";
+import defaultAvatar from "@/assets/perfilDefecte.png";
+import { getCurrentUser } from "@/api/authApi";
 
 export default function CompteInformacioPersonal() {
-  // De moment mock. Després s'ha de connectar a la api a l'usuari real.
+  const authUser = getCurrentUser();
+
   const user = {
-    nom: "Eloi Cortiella Fortuño",
-    emails: [
-      "eloicortiella@iesebre.com",
-      "eloicortiella@exchange.iesebre.com",
-      "eloicortiella@insebre.cat",
-    ],
-    telefon: "691 65 33 30",
-    idioma: "català (Espanya)",
+    nom: authUser?.name ?? authUser?.username ?? "Usuari",
+    emails: authUser?.email ? [authUser.email] : [],
+    telefon: authUser?.telefon ?? "No s'ha definit",
+    idioma: authUser?.idioma ?? "No s'ha definit",
     adrecaCasa: "No s'ha definit",
     adrecaTreball: "No s'ha definit",
     altresAdreces: "Cap",
-    avatar:
-      "https://i.imgur.com/4AiXzf8.jpeg", // posa la teua url o user.avatar
+    avatar: authUser?.avatar ?? defaultAvatar,
     darrerCanviContrasenya: "11 de des. 2022",
   };
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TbLockPassword } from "react-icons/tb";
 import { MdAlternateEmail } from "react-icons/md";
 import { IoMdContact } from "react-icons/io";
+import { login, register } from "../../api/authApi";
 
 export const LoginSingup = () => {
     const [action, setAction] = useState("Iniciar Sessió"); // o "Registrarse"
@@ -18,9 +19,6 @@ export const LoginSingup = () => {
     // UI state
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState({ type: "", text: "" }); // type: success|error|info
-
-    // Base URL API (si vols, canvia-ho a un .env de Vite: VITE_API_BASE_URL)
-    const API_BASE = "https://playmonserver.vercel.app";
 
     const isRegister = action === "Registrarse";
 
@@ -44,26 +42,13 @@ export const LoginSingup = () => {
         setFeedback({ type: "", text: "" });
 
         try {
-            const res = await fetch(`${API_BASE}/api/users`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: form.username.trim(),
-                    name: form.username.trim(),
-                    email: form.email.trim(),
-                    role: "user",
-                    password: form.password,
-                }),
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (!res.ok) {
-                throw new Error(data?.error || `HTTP ${res.status}`);
-            }
+            const data = await register(
+                form.username.trim(),
+                form.email.trim(),
+                form.password
+            );
 
             setFeedback({ type: "success", text: `Usuari creat! (id: ${data.id ?? "?"})` });
-            // opcional: passar a login automàticament
             setAction("Iniciar Sessió");
             setForm({ username: "", email: "", password: "" });
         } catch (e) {
@@ -83,26 +68,10 @@ export const LoginSingup = () => {
         setFeedback({ type: "", text: "" });
 
         try {
-            const res = await fetch(`${API_BASE}/api/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: form.email.trim(),
-                    password: form.password,
-                }),
-            });
-
-            const data = await res.json().catch(() => ({}));
-
-            if (!res.ok) {
-                throw new Error(data?.error || `HTTP ${res.status}`);
-            }
-
-            //Potser caldria guardar token
+            await login(form.email.trim(), form.password);
 
             setFeedback({ type: "success", text: "Sessió iniciada. Redirigint.." });
-            // aquí normalment guardariem token i navegariem
-        navigate("/perfil");
+            navigate("/compte/inici");
         } catch (e) {
             setFeedback({ type: "error", text: e?.message || "Error fent login" });
         } finally {

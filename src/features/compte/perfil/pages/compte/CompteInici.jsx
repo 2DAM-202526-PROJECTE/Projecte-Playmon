@@ -2,15 +2,19 @@ import { useEffect, useState, useRef } from "react";
 import PerfilCard from "@/features/compte/perfil/pages/PerfilCard";
 import ModalEditarPerfil from "@/features/compte/perfil/pages/compte/ModelEditarPerfil";
 import ModalCanviarAvatar from "@/features/compte/perfil/pages/compte/ModelEditarAvatar";
+import { getCurrentUser, updateCurrentUser } from "@/api/authApi";
 
 import defaultAvatar from "@/assets/perfilDefecte.png";
 import CameraIcon from "@/assets/camera_icon.svg";
 
 export default function CompteInici() {
-  const [user, setUser] = useState({
-    name: "Eloi",
-    email: "eloicortiella@iesebre.com",
-    avatar: defaultAvatar,
+  const [user, setUser] = useState(() => {
+    const authUser = getCurrentUser();
+    return {
+      name: authUser?.name ?? authUser?.username ?? "Usuari",
+      email: authUser?.email ?? "",
+      avatar: authUser?.avatar ?? defaultAvatar,
+    };
   });
 
   const [modalEditarObert, setModalEditarObert] = useState(false);
@@ -47,15 +51,18 @@ export default function CompteInici() {
     avatarLocalRef.current = url;
 
     setUser((prev) => ({ ...prev, avatar: url }));
+    updateCurrentUser({ avatar: url });
   };
 
   const eliminarAvatar = () => {
     setUser((prev) => ({ ...prev, avatar: null }));
+    updateCurrentUser({ avatar: null });
   };
 
   const guardarPerfil = async (dades) => {
     await new Promise((r) => setTimeout(r, 200));
     setUser((prev) => ({ ...prev, ...dades }));
+    updateCurrentUser(dades);
   };
 
   return (
