@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import logo from '../assets/LogoProducteLandingPageTransparent.png'
 import {
     HiHome,
@@ -10,9 +11,12 @@ import {
 import { HiPlus, HiDotsVertical } from "react-icons/hi"
 import HeaderItem from './HeaderItem'
 import perfilDefecte from '../assets/perfilDefecte.png'
+import { getCurrentUser } from '../api/authApi'
 
 function Header() {
     const [toggle, setToggle] = useState(false)
+    const navigate = useNavigate()
+    const user = getCurrentUser()
     const menu = [
         {
             name: "HOME",
@@ -64,7 +68,12 @@ function Header() {
                     </div>
                 </div>
             </div>
-            <img src={perfilDefecte} className="w-[40px] rounded-full" />
+            <img 
+                src={user?.avatar || perfilDefecte} 
+                className="w-[40px] h-[40px] rounded-full cursor-pointer object-cover hover:ring-2 hover:ring-[#CC8400] transition-all"
+                onClick={() => navigate('/compte')}
+                alt="Profile"
+            />
         </div>
     )
 }
