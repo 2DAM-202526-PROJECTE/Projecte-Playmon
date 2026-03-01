@@ -25,18 +25,18 @@ const items = [
     Icon: KeyIcon,
     color: "bg-indigo-100 text-indigo-700",
   },
-  {
-    to: "/compte/connexions",
-    label: "Connexions de tercers",
-    Icon: LinkIcon,
-    color: "bg-cyan-100 text-cyan-700",
-  },
-  {
-    to: "/compte/privadesa",
-    label: "Dades i privadesa",
-    Icon: ShieldIcon,
-    color: "bg-purple-100 text-purple-700",
-  },
+  // {
+  //   to: "/compte/connexions",
+  //   label: "Connexions de tercers",
+  //   Icon: LinkIcon,
+  //   color: "bg-cyan-100 text-cyan-700",
+  // },
+  // {
+  //   to: "/compte/privadesa",
+  //   label: "Dades i privadesa",
+  //   Icon: ShieldIcon,
+  //   color: "bg-purple-100 text-purple-700",
+  // },
   {
     to: "/compte/pagaments",
     label: "Pagaments i subscripcions",
@@ -48,7 +48,7 @@ const items = [
 export default function SideBarCompte() {
   return (
     <aside className="self-start">
-      <div className="mb-3 pl-2 text-sm font-semibold text-slate-800">
+      <div className="mb-3 pl-2 text-sm font-semibold text-white-800">
         Playmon Compte
       </div>
 

@@ -10,7 +10,7 @@ export default function PerfilCard({
 
   return (
     <section className="rounded-3xl bg-[#1f1f1f] px-6 py-10 ring-1 ring-white/10">
-      {/* Acció (com Google, discret i a dalt) */}
+      {/* Acció d'editar nom de perfil */}
       <div className="flex justify-end">
         <button
           type="button"
@@ -34,7 +34,7 @@ export default function PerfilCard({
             )}
           </div>
 
-          {/* Càmera a sobre (com Google) */}
+          {/* Càmera a sobre de foto d'avatar per poder editar*/}
           <button
             type="button"
             title="Canviar foto"
@@ -55,7 +55,7 @@ export default function PerfilCard({
         </h2>
         <p className="mt-1 text-sm text-white/70">{correu}</p>
 
-        {/* Cercador gran (Google style) */}
+        {/* Cercador */}
         <div className="mt-7 w-full max-w-2xl">
           <div className="flex items-center gap-3 rounded-full bg-white/10 px-5 py-3.5 ring-1 ring-white/10 focus-within:ring-white/20">
             <SearchIcon />

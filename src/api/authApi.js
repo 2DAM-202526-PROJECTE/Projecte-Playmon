@@ -54,6 +54,7 @@ export function updateCurrentUser(patch) {
     const current = getCurrentUser() || {};
     const next = { ...current, ...patch };
     localStorage.setItem(USER_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("auth:user-updated"));
     return next;
 }
 

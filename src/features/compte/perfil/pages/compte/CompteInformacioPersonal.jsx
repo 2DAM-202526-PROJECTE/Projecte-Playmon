@@ -3,7 +3,7 @@ import React from "react";
 import defaultAvatar from "@/assets/perfilDefecte.png";
 import { getCurrentUser } from "@/api/authApi";
 
-export default function CompteInformacioPersonal() {
+export default function CompteInformacioPersonal({onChangePhoto}) {
   const authUser = getCurrentUser();
 
   const user = {
@@ -38,7 +38,7 @@ export default function CompteInformacioPersonal() {
           titol="Foto de perfil"
           valor=""
           avatarDreta={user.avatar}
-          onClick={() => console.log("Obrir modal avatar")}
+          onClick={onChangePhoto}
         />
 
         <Separador />
