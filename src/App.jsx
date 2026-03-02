@@ -54,6 +54,18 @@ const App = () => {
             element={<LoginSingup />}
           />
           <Route path="/dashboard"
+            element={<Navigate to="/dashboard/users" replace />}
+          />
+          <Route path="/dashboard/users"
+            element={<ProtectedRoute element={<AdminDashboard />} />}
+          />
+          <Route path="/dashboard/admins"
+            element={<ProtectedRoute element={<AdminDashboard />} />}
+          />
+          <Route path="/dashboard/videos"
+            element={<ProtectedRoute element={<AdminDashboard />} />}
+          />
+          <Route path="/dashboard/public-videos"
             element={<ProtectedRoute element={<AdminDashboard />} />}
           />
           
