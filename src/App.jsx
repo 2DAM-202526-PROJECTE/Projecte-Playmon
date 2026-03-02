@@ -17,6 +17,7 @@ import CompteConnexions from "@/features/compte/perfil/pages/compte/CompteConnex
 import ComptePrivadesa from "@/features/compte/perfil/pages/compte/ComptePrivadesa.jsx";
 import ComptePagaments from "@/features/compte/perfil/pages/compte/ComptePagaments.jsx";
 import NotFound from '@/features/NotFound/NotFound.jsx';
+import Forbidden from '@/features/Forbidden/Forbidden.jsx';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Header from './components/Header';
 import Slider from './components/Slider';
@@ -54,8 +55,10 @@ const App = () => {
             element={<LoginSingup />}
           />
           <Route path="/dashboard"
-            element={<ProtectedRoute element={<AdminDashboard />} />}
+            element={<ProtectedRoute element={<AdminDashboard />} requiredRole="admin" />}
           />
+
+          <Route path="/403" element={<Forbidden />} />
           
           {/* Catch-all 404 route - must be last */}
           <Route path="*" element={<NotFound />} />

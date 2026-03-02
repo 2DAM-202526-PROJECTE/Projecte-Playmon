@@ -4,11 +4,12 @@ import { getToken, ensureCurrentUser } from '../api/authApi';
 
 const REDIRECT_KEY = 'redirectAfterLogin';
 
-export const ProtectedRoute = ({ element }) => {
+export const ProtectedRoute = ({ element, requiredRole }) => {
     const token = getToken();
     const location = useLocation();
     const [isLoading, setIsLoading] = useState(true);
     const [hasValidAuth, setHasValidAuth] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         const validateAuth = async () => {
@@ -24,9 +25,11 @@ export const ProtectedRoute = ({ element }) => {
             try {
                 const user = await ensureCurrentUser();
                 setHasValidAuth(!!user);
+                setUserRole(user?.role ?? null);
             } catch (error) {
                 console.error("Failed to fetch user data:", error);
                 setHasValidAuth(false);
+                setUserRole(null);
             } finally {
                 setIsLoading(false);
             }
@@ -48,6 +51,14 @@ export const ProtectedRoute = ({ element }) => {
     if (!hasValidAuth) {
         sessionStorage.setItem(REDIRECT_KEY, location.pathname);
         return <Navigate to="/login" replace />;
+    }
+
+    if (requiredRole) {
+        const normalizedUserRole = (userRole || '').toLowerCase();
+        const normalizedRequiredRole = requiredRole.toLowerCase();
+        if (normalizedUserRole !== normalizedRequiredRole) {
+            return <Navigate to="/403" replace />;
+        }
     }
 
     return element;
