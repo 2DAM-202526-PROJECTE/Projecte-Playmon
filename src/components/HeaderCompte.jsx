@@ -67,6 +67,7 @@ export default function HeaderCompte({
 
   const nomUsuari = user?.name ?? user?.username ?? "Usuari";
   const avatarUsuari = user?.avatar ?? defaultAvatar;
+  const esAdmin = (user?.role || "").toLowerCase() === "admin";
 
   const inicials = useMemo(() => {
     const n = (nomUsuari || "U").trim();
@@ -194,6 +195,9 @@ export default function HeaderCompte({
                 />
                 <MenuItem to="/compte/seguretat" label="Seguretat" onClick={() => setMenuObert(false)} />
                 <MenuItem to="/compte/contrasenya" label="Contrasenya" onClick={() => setMenuObert(false)} />
+                {esAdmin ? (
+                  <MenuItem to="/dashboard" label="Dashboard" onClick={() => setMenuObert(false)} />
+                ) : null}
 
                 <div className="h-px bg-white/10" />
 
