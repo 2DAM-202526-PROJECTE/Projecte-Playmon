@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import SideBarCompte from "@/features/compte/perfil/components/SideBarCompte";
 import { httpClient } from "@/api/httpClient";
+import { getCurrentUser } from "@/api/authApi";
+import { uploadVideo } from "@/api/videosApi";
 
 export default function AdminDashboard() {
     const [activeSection, setActiveSection] = useState("admin-dashboard");
@@ -13,6 +15,13 @@ export default function AdminDashboard() {
     const [error, setError] = useState("");
     const [apiLatencyMs, setApiLatencyMs] = useState(null);
     const [lastSync, setLastSync] = useState("");
+    const [videoTitle, setVideoTitle] = useState("");
+    const [videoDescription, setVideoDescription] = useState("");
+    const [videoFile, setVideoFile] = useState(null);
+    const [videoPublic, setVideoPublic] = useState(false);
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+    const [uploadFeedback, setUploadFeedback] = useState("");
+    const [uploadError, setUploadError] = useState("");
 
     useEffect(() => {
         let mounted = true;
@@ -149,6 +158,52 @@ export default function AdminDashboard() {
         };
     }, [selectedRoute, users, videos]);
 
+    const handleUploadVideo = async (event) => {
+        event.preventDefault();
+        setUploadFeedback("");
+        setUploadError("");
+
+        if (!videoFile) {
+            setUploadError("Selecciona un vídeo abans de pujar-lo");
+            return;
+        }
+
+        const authUser = getCurrentUser();
+        if (!authUser?.id) {
+            setUploadError("No s'ha pogut identificar l'usuari autenticat");
+            return;
+        }
+
+        try {
+            setUploadingVideo(true);
+
+            await uploadVideo({
+                file: videoFile,
+                title: videoTitle,
+                description: videoDescription,
+                isPublic: videoPublic,
+                userId: authUser.id,
+            });
+
+            const videosResult = await httpClient("/videos");
+            const videosList = Array.isArray(videosResult)
+                ? videosResult
+                : videosResult?.videos || [];
+            setVideos(videosList);
+            setLastSync(new Date().toLocaleString());
+
+            setUploadFeedback("Vídeo pujat correctament");
+            setVideoTitle("");
+            setVideoDescription("");
+            setVideoFile(null);
+            setVideoPublic(false);
+        } catch (uploadException) {
+            setUploadError(uploadException?.message || "Error pujant el vídeo");
+        } finally {
+            setUploadingVideo(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-black">
             <div className="mx-auto grid max-w-300 grid-cols-1 gap-6 px-5 py-7 lg:grid-cols-[280px_1fr]">
@@ -223,6 +278,69 @@ export default function AdminDashboard() {
                                     </tbody>
                                 </table>
                             </div>
+                        </article>
+                    </section>
+
+                    <section>
+                        <article className="rounded-2xl bg-[#303134] p-5 ring-1 ring-white/10">
+                            <h2 className="text-base font-semibold text-white">Pujar vídeo</h2>
+
+                            <form className="mt-4 grid grid-cols-1 gap-3" onSubmit={handleUploadVideo}>
+                                <input
+                                    type="text"
+                                    value={videoTitle}
+                                    onChange={(event) => setVideoTitle(event.target.value)}
+                                    placeholder="Títol"
+                                    className="rounded-xl bg-[#202124] px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40"
+                                />
+
+                                <textarea
+                                    value={videoDescription}
+                                    onChange={(event) => setVideoDescription(event.target.value)}
+                                    placeholder="Descripció"
+                                    rows={3}
+                                    className="rounded-xl bg-[#202124] px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 placeholder:text-white/40"
+                                />
+
+                                <input
+                                    type="file"
+                                    accept="video/*"
+                                    onChange={(event) => setVideoFile(event.target.files?.[0] || null)}
+                                    className="rounded-xl bg-[#202124] px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white/90"
+                                />
+
+                                <label className="flex items-center gap-2 text-sm text-white/80">
+                                    <input
+                                        type="checkbox"
+                                        checked={videoPublic}
+                                        onChange={(event) => setVideoPublic(event.target.checked)}
+                                        className="h-4 w-4 rounded border-white/20 bg-[#202124]"
+                                    />
+                                    Fer públic
+                                </label>
+
+                                {uploadError ? (
+                                    <div className="rounded-xl bg-rose-500/10 px-3 py-2 text-sm text-rose-200 ring-1 ring-rose-500/30">
+                                        {uploadError}
+                                    </div>
+                                ) : null}
+
+                                {uploadFeedback ? (
+                                    <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 ring-1 ring-emerald-500/30">
+                                        {uploadFeedback}
+                                    </div>
+                                ) : null}
+
+                                <div>
+                                    <button
+                                        type="submit"
+                                        disabled={uploadingVideo}
+                                        className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/10 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {uploadingVideo ? "Pujant..." : "Pujar vídeo"}
+                                    </button>
+                                </div>
+                            </form>
                         </article>
                     </section>
 
