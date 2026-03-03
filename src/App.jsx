@@ -6,6 +6,15 @@ import {
 } from 'react-router-dom';
 
 // Pantalles
+<<<<<<< HEAD
+import PerfilScreen from './screens/perfil/Perfil.jsx'
+import LoginSingup from './screens/login/LoginSingup.jsx'
+import AdminDashboard from './screens/Admin/Dashboard.jsx'
+import Header from './components/Header.jsx'
+import Slider from './components/Slider.jsx'
+import ProductionHous from './components/ProductionHous.jsx'
+import GenreMovieList from './components/GenreMovieList.jsx'
+=======
 import LoginSingup from '@/features/login/LoginSingup.jsx'
 import AdminDashboard from '@/features/Admin/Dashboard'
 import CompteLayout from '@/features/compte/perfil/routes/CompteLayout.jsx';
@@ -22,12 +31,26 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Header from './components/Header';
 import Slider from './components/Slider';
 import ProductionHous from './components/ProductionHous';
+>>>>>>> a502eaaa848adcdb170ca025494b58b715a6272f
 
 const App = () => {
   return (
     <Router>
-      <div className="app">
+      <div className="app min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
         <Routes>
+<<<<<<< HEAD
+          <Route path="/" element={
+            <>
+              <Header />
+              <Slider />
+              <ProductionHous />
+              <GenreMovieList />
+            </>
+          } />
+          <Route path="/perfil" element={<PerfilScreen />} />
+          <Route path="/login" element={<LoginSingup />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+=======
           <Route path="/"
             element={
               <ProtectedRoute element={
@@ -74,6 +97,7 @@ const App = () => {
           
           {/* Catch-all 404 route - must be last */}
           <Route path="*" element={<NotFound />} />
+>>>>>>> a502eaaa848adcdb170ca025494b58b715a6272f
         </Routes>
       </div>
     </Router>
