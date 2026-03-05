@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import ProgressSteps from "../../components/Subscripcio/ProgresSubscripcio.jsx";
+import ProgressSteps from "@/features/compte/subscripcio/FluxSubscripcio.jsx";
 import StepIntro from "./pasos/PasIntro.jsx";
 import StepChoosePlan from "./pasos/PasTriarPlan.jsx";
 import StepPayment from "./pasos/PasPagament.jsx";

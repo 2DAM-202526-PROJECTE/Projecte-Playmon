@@ -23,6 +23,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Header from './components/Header';
 import Slider from './components/Slider';
 import ProductionHous from './components/ProductionHous';
+import FluxSubscripcio from '@/features/compte/subscripcio/FluxSubscripcio';
 
 const App = () => {
   return (
@@ -77,6 +78,10 @@ const App = () => {
           
           {/* Catch-all 404 route - must be last */}
           <Route path="*" element={<NotFound />} />
+
+          {/* <Route path='/plan_subscripcio'
+            element={<FluxSubscripcio/>} 
+          /> */}
         </Routes>
       </div>
     </Router>
