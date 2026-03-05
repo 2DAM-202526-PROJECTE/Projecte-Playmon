@@ -49,3 +49,15 @@ export async function deleteAvatar(userId) {
         method: "DELETE",
     });
 }
+
+export async function updateUserSubscription(userId, plan) {
+    // Normalizing plan for server: "Pla Super" -> "super"
+    const normalizedPlan = plan.toLowerCase().replace("pla ", "");
+    
+    return httpClient(`/users/${userId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+            subscription_plan: normalizedPlan,
+        }),
+    });
+}
