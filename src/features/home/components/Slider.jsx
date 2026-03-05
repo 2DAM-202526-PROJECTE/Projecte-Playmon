@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import GlobalApi from '../Services/GlobalApi';
+import GlobalApi from '@/Services/GlobalApi';
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2"
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
@@ -78,12 +78,6 @@ function Slider() {
     if (extendedList.length === 0) return null
 
     // ── Posicionament del filmstrip via CSS ──
-    // El track té width:100% del contenidor.
-    // Cada item té width: ITEM_W% del contenidor (= % del track).
-    // translateX(%) és relatiu a l'amplada pròpia del track = amplada del contenidor.
-    // Per centrar l'ítem `trackIdx` amb SIDE_W% de previsualització:
-    //   offset = -(trackIdx × ITEM_W%) + SIDE_W%
-    //   Ex: trackIdx=1 → calc(-76% + 12%) = -64% → item1 queda a 76%-64% = 12% des de l'esquerra ✓
     const translateX = `calc(-${trackIdx * ITEM_W}% + ${SIDE_W}%)`
 
     const trackStyle = {

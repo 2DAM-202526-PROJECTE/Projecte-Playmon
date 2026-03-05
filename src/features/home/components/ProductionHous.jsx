@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react'
-import disney from '../assets/Images/disney.png'
-import marvel from '../assets/Images/marvel.png'
-import starwars from '../assets/Images/starwars.png'
-import national from '../assets/Images/national.png'
-import pixar from '../assets/Images/pixar.png'
+import disney from '@/assets/Images/disney.png'
+import marvel from '@/assets/Images/marvel.png'
+import starwars from '@/assets/Images/starwars.png'
+import national from '@/assets/Images/national.png'
+import pixar from '@/assets/Images/pixar.png'
 
-import disneyVid from '../assets/Videos/disney.mp4'
-import marvelVid from '../assets/Videos/marvel.mp4'
-import starwarsVid from '../assets/Videos/starwars.mp4'
-import nationalVid from '../assets/Videos/national.mp4'
-import pixarVid from '../assets/Videos/pixar.mp4'
+import disneyVid from '@/assets/Videos/disney.mp4'
+import marvelVid from '@/assets/Videos/marvel.mp4'
+import starwarsVid from '@/assets/Videos/starwars.mp4'
+import nationalVid from '@/assets/Videos/national.mp4'
+import pixarVid from '@/assets/Videos/pixar.mp4'
 
 const studios = [
     { id: 1, image: disney, alt: 'Disney', video: disneyVid },
