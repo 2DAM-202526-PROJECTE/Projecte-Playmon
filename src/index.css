@@ -1,4 +1,9 @@
 @import 'tailwindcss';
+@import 'tailwind-scrollbar-hide/v4';
+
+:root {
+  background-color: black;
+}
 
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -15,56 +20,37 @@
   -moz-osx-font-smoothing: grayscale;
 } */
 
-/* a {
+a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
+
+/*
 a:hover {
   color: #535bf2;
-}
+@theme {
+  --color-primary: #CC8400;
+  --color-dark-grey: #1A1A1A;
+} */
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  background-color: #000000;
+  color: #ffffff;
   min-height: 100vh;
-} */
-
-/* h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-} */
-
-/* button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-} */
 
-/* @media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* Ken Burns slow zoom for movie detail hero */
+@keyframes slow-zoom {
+  0% {
+    transform: scale(1);
   }
-  a:hover {
-    color: #747bff;
+
+  100% {
+    transform: scale(1.1);
   }
-  button {
-    background-color: #f9f9f9;
-  }
-} */
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 20s ease-in-out infinite alternate;
+}
