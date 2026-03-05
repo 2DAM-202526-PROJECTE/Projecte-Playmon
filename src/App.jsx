@@ -6,9 +6,10 @@ import {
 } from 'react-router-dom';
 
 // Pantalles
+import PantallaReproduccio from '@/features/reproductor/pages/PantallaReproductor.jsx';
 import LoginSingup from '@/features/login/LoginSingup.jsx'
 import AdminDashboard from '@/features/Admin/Dashboard'
-import CompteLayout from '@/features/compte/perfil/routes/CompteLayout.jsx';
+import CompteLayout from '@/features/compte/perfil/layout/CompteLayout.jsx';
 import CompteInici from "@/features/compte/perfil/pages/compte/CompteInici.jsx";
 import CompteInformacioPersonal from "@/features/compte/perfil/pages/compte/CompteInformacioPersonal.jsx";
 import CompteSeguretat from "@/features/compte/perfil/pages/compte/CompteSeguretat.jsx";
@@ -60,10 +61,16 @@ const App = () => {
             element={<ProtectedRoute element={<AdminDashboard />} requiredRole="admin" />}
           />
 
+          <Route path='/reproduccio/:id' element={<PantallaReproduccio />} />
+
           <Route path="/403" element={<Forbidden />} />
 
           {/* Catch-all 404 route - must be last */}
           <Route path="*" element={<NotFound />} />
+
+          {/* <Route path='/plan_subscripcio'
+            element={<FluxSubscripcio/>} 
+          /> */}
         </Routes>
       </div>
     </Router>
