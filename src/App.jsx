@@ -20,6 +20,7 @@ import NotFound from '@/features/NotFound/NotFound.jsx';
 import Forbidden from '@/features/Forbidden/Forbidden.jsx';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import HomeLayout from '@/features/home/HomeLayout';
+import MovieDetailPage from '@/features/detail/MovieDetailPage';
 
 const App = () => {
   return (
@@ -28,6 +29,12 @@ const App = () => {
         <Routes>
           <Route path="/"
             element={<ProtectedRoute element={<HomeLayout />} />}
+          />
+          <Route path="/movie/:id"
+            element={<ProtectedRoute element={<MovieDetailPage />} />}
+          />
+          <Route path="/tv/:id"
+            element={<ProtectedRoute element={<MovieDetailPage />} />}
           />
 
           <Route path="/compte" element={<ProtectedRoute element={<CompteLayout />} />}>

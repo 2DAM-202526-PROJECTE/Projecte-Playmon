@@ -20,11 +20,12 @@
   -moz-osx-font-smoothing: grayscale;
 } */
 
- a {
+a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
+
 /*
 a:hover {
   color: #535bf2;
@@ -37,4 +38,19 @@ body {
   background-color: #000000;
   color: #ffffff;
   min-height: 100vh;
+}
+
+/* Ken Burns slow zoom for movie detail hero */
+@keyframes slow-zoom {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 20s ease-in-out infinite alternate;
 }
