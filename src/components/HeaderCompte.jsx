@@ -121,7 +121,7 @@ export default function HeaderCompte({
               <img
                 src={logoSrc}
                 alt={`${appName} logo`}
-                className="h-7 w-auto select-none"
+                className="h-20 w-auto select-none"
                 draggable={false}
               />
             ) : (
