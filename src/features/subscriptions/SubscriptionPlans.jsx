@@ -1,7 +1,7 @@
 import React from "react";
 import { FiCheck, FiX, FiLayers, FiZap, FiStar } from "react-icons/fi";
 
-const PricingCard = ({ title, price, features, recommended, icon: Icon, color }) => {
+const PricingCard = ({ title, price, features, recommended, icon: Icon, color, onSelect }) => {
   return (
     <div className={`relative flex flex-col p-8 rounded-3xl border transition-all duration-500 hover:scale-105 ${
       recommended 
@@ -42,18 +42,21 @@ const PricingCard = ({ title, price, features, recommended, icon: Icon, color })
         ))}
       </div>
 
-      <button className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${
-        recommended 
-          ? "bg-gradient-to-r from-[#CC8400] to-[#E65100] text-black hover:shadow-[0_0_20px_rgba(230,81,0,0.4)]" 
-          : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
-      }`}>
+      <button 
+        onClick={() => onSelect({ title, price })}
+        className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${
+          recommended 
+            ? "bg-gradient-to-r from-[#CC8400] to-[#E65100] text-black hover:shadow-[0_0_20px_rgba(230,81,0,0.4)]" 
+            : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
+        }`}
+      >
         Seleccionar Pla
       </button>
     </div>
   );
 };
 
-export const SubscriptionPlans = () => {
+export const SubscriptionPlans = ({ onSelectPlan }) => {
   const plans = [
     {
       title: "Pla Bàsic",
@@ -113,7 +116,7 @@ export const SubscriptionPlans = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
         {plans.map((plan, idx) => (
-          <PricingCard key={idx} {...plan} />
+          <PricingCard key={idx} {...plan} onSelect={onSelectPlan} />
         ))}
       </div>
 
