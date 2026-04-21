@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { HiStar, HiPlus, HiVideoCamera, HiUser, HiMagnifyingGlass, HiXMark } from 'react-icons/hi2'
 import Header from '@/components/Header'
 import HomeFooter from '@/features/home/components/HomeFooter'
@@ -7,26 +7,48 @@ import VideoFormModal from './components/VideoFormModal'
 import PersonalPanel from './components/PersonalPanel'
 import CreatorModal from './components/CreatorModal'
 import { getCurrentUser } from '@/api/authApi'
+import { getVideos, deleteVideo } from '@/api/videosApi'
 
-const STORAGE_KEY = 'playmon_originals'
+// ─── localStorage metadata (likes i views, no persistits a BD) ───────────────
+const META_KEY = 'playmon_originals_meta'
 
-const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+function loadMeta() {
+    try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') }
+    catch { return {} }
+}
+
+function saveMeta(meta) {
+    localStorage.setItem(META_KEY, JSON.stringify(meta))
+}
+
+// ─── Normalitza un vídeo de la API al format que espera OriginalVideoCard ─────
+function normalizeVideo(v, meta) {
+    const m = meta[String(v.id)] || {}
+    return {
+        id: String(v.id),
+        userId: String(v.user_id),
+        username: v.username || 'Usuari',
+        userAvatar: v.user_avatar || null,
+        title: v.title || '',
+        description: v.description || '',
+        thumbnailDataUrl: v.thumbnail_url || null,
+        category: v.categoria || '',
+        createdAt: v.created_at || new Date().toISOString(),
+        videoUrl: v.video_url,
+        likes: m.likes ?? [],
+        views: m.views ?? 0,
+    }
+}
+
+// eslint-disable-next-line no-misleading-character-class
+const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 const SORT_OPTIONS = [
-    { key: 'newest',    label: 'Més nous' },
-    { key: 'mostLiked', label: 'Més valorats' },
+    { key: 'newest',     label: 'Més nous' },
+    { key: 'mostLiked',  label: 'Més valorats' },
     { key: 'mostViewed', label: 'Més vistos' },
-    { key: 'oldest',    label: 'Més antics' },
+    { key: 'oldest',     label: 'Més antics' },
 ]
-
-function loadVideos() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') }
-    catch { return [] }
-}
-
-function saveVideos(videos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos))
-}
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ onUpload }) {
@@ -54,7 +76,11 @@ function EmptyState({ onUpload }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function OriginalsPage() {
     const currentUser = getCurrentUser()
-    const [videos, setVideos] = useState(loadVideos)
+    const [rawVideos, setRawVideos] = useState([])   // dades de la API
+    const [meta, setMeta] = useState(loadMeta)        // likes/views locals
+    const [loading, setLoading] = useState(true)
+    const [loadError, setLoadError] = useState(null)
+
     const [showModal, setShowModal] = useState(false)
     const [editingVideo, setEditingVideo] = useState(null)
     const [panelOpen, setPanelOpen] = useState(false)
@@ -63,14 +89,34 @@ export default function OriginalsPage() {
     const [sortBy, setSortBy] = useState('newest')
     const [creatorToShow, setCreatorToShow] = useState(null)
 
+    // ── Carregar vídeos de la API ────────────────────────────────────────────
+    const fetchVideos = useCallback(async () => {
+        setLoading(true)
+        setLoadError(null)
+        try {
+            const data = await getVideos()
+            setRawVideos(data.videos || [])
+        } catch (err) {
+            setLoadError('No s\'ha pogut carregar el contingut. Comprova la connexió.')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    useEffect(() => { fetchVideos() }, [fetchVideos])
+
+    // ── Vídeos normalitzats (API + metadata local) ───────────────────────────
+    const videos = useMemo(() => rawVideos.map(v => normalizeVideo(v, meta)), [rawVideos, meta])
+
+    // ── Categories disponibles ───────────────────────────────────────────────
     const categories = useMemo(() => {
         const cats = videos.map(v => v.category).filter(Boolean)
         return [...new Set(cats)].sort()
     }, [videos])
 
+    // ── Filtratge i ordenació ────────────────────────────────────────────────
     const filteredVideos = useMemo(() => {
         const q = normalize(searchQuery)
-
         const filtered = videos.filter(v => {
             const matchesText = !q ||
                 normalize(v.title).includes(q) ||
@@ -79,83 +125,79 @@ export default function OriginalsPage() {
             const matchesCat = !activeCategory || v.category === activeCategory
             return matchesText && matchesCat
         })
-
         return [...filtered].sort((a, b) => {
-            if (sortBy === 'newest')    return new Date(b.createdAt) - new Date(a.createdAt)
-            if (sortBy === 'oldest')    return new Date(a.createdAt) - new Date(b.createdAt)
-            if (sortBy === 'mostLiked') return (b.likes?.length ?? 0) - (a.likes?.length ?? 0)
+            if (sortBy === 'newest')     return new Date(b.createdAt) - new Date(a.createdAt)
+            if (sortBy === 'oldest')     return new Date(a.createdAt) - new Date(b.createdAt)
+            if (sortBy === 'mostLiked')  return (b.likes?.length ?? 0) - (a.likes?.length ?? 0)
             if (sortBy === 'mostViewed') return (b.views ?? 0) - (a.views ?? 0)
             return 0
         })
     }, [videos, searchQuery, activeCategory, sortBy])
 
-    useEffect(() => {
-        const onStorage = () => setVideos(loadVideos())
-        window.addEventListener('storage', onStorage)
-        return () => window.removeEventListener('storage', onStorage)
-    }, [])
-
-    const handleSave = (formData) => {
-        if (editingVideo) {
-            // Preserve likes and views on edit
-            const updated = videos.map(v =>
-                v.id === editingVideo.id ? { ...v, ...formData } : v
-            )
-            saveVideos(updated)
-            setVideos(updated)
-        } else {
-            const newVideo = {
-                id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                userId: String(currentUser.id),
-                username: currentUser.username || currentUser.name || 'Usuari',
-                userAvatar: currentUser.avatar || null,
-                createdAt: new Date().toISOString(),
-                likes: [],
-                views: 0,
-                ...formData,
+    // ── Handlers ────────────────────────────────────────────────────────────
+    const handleSave = (savedVideo) => {
+        // savedVideo és la resposta directa de la API
+        setRawVideos(prev => {
+            const exists = prev.find(v => String(v.id) === String(savedVideo.id))
+            if (exists) {
+                return prev.map(v => String(v.id) === String(savedVideo.id) ? savedVideo : v)
             }
-            const updated = [newVideo, ...videos]
-            saveVideos(updated)
-            setVideos(updated)
-        }
+            return [savedVideo, ...prev]
+        })
         setShowModal(false)
         setEditingVideo(null)
     }
 
     const handleEdit = (video) => {
-        setEditingVideo(video)
+        // Passem el video normalitzat però l'id és el de la API
+        setEditingVideo({ ...video, id: video.id, categoria: video.category })
         setShowModal(true)
         setPanelOpen(false)
     }
 
-    const handleDelete = (id) => {
-        const updated = videos.filter(v => v.id !== id)
-        saveVideos(updated)
-        setVideos(updated)
+    const handleDelete = async (id) => {
+        try {
+            await deleteVideo(id)
+            setRawVideos(prev => prev.filter(v => String(v.id) !== String(id)))
+            // Netejar metadata del vídeo eliminat
+            setMeta(prev => {
+                const updated = { ...prev }
+                delete updated[String(id)]
+                saveMeta(updated)
+                return updated
+            })
+        } catch {
+            // Si falla el delete de la API, refresquem per assegurar consistència
+            fetchVideos()
+        }
     }
 
     const handleLike = (videoId) => {
         if (!currentUser) return
         const uid = String(currentUser.id)
-        const updated = videos.map(v => {
-            if (v.id !== videoId) return v
-            const likes = v.likes ?? []
-            const isLiked = likes.includes(uid)
-            return { ...v, likes: isLiked ? likes.filter(id => id !== uid) : [...likes, uid] }
+        setMeta(prev => {
+            const m = { ...prev }
+            const entry = { ...(m[videoId] || { likes: [], views: 0 }) }
+            const isLiked = entry.likes.includes(uid)
+            entry.likes = isLiked ? entry.likes.filter(id => id !== uid) : [...entry.likes, uid]
+            m[videoId] = entry
+            saveMeta(m)
+            return m
         })
-        saveVideos(updated)
-        setVideos(updated)
     }
 
     const handleView = (videoId) => {
         const sessionKey = `playmon_originals_viewed_${videoId}`
         if (sessionStorage.getItem(sessionKey)) return
         sessionStorage.setItem(sessionKey, '1')
-        const updated = videos.map(v =>
-            v.id === videoId ? { ...v, views: (v.views ?? 0) + 1 } : v
-        )
-        saveVideos(updated)
-        setVideos(updated)
+        setMeta(prev => {
+            const m = { ...prev }
+            const entry = { ...(m[videoId] || { likes: [], views: 0 }) }
+            entry.views = (entry.views ?? 0) + 1
+            m[videoId] = entry
+            saveMeta(m)
+            return m
+        })
     }
 
     const openUpload = () => {
@@ -221,10 +263,9 @@ export default function OriginalsPage() {
                 </div>
             </section>
 
-            {/* ── Divider ───────────────────────────────────────────────────── */}
             <div className="mx-6 md:mx-12 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-10" />
 
-            {/* ── Search + category filters ─────────────────────────────────── */}
+            {/* ── Cerca + filtres de categoria ──────────────────────────────── */}
             <div className="px-6 md:px-12 mb-6">
                 <div className="relative mb-4">
                     <HiMagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35 text-lg pointer-events-none" />
@@ -276,9 +317,8 @@ export default function OriginalsPage() {
                 )}
             </div>
 
-            {/* ── Community content grid ────────────────────────────────────── */}
+            {/* ── Grid de contingut ─────────────────────────────────────────── */}
             <div className="px-6 md:px-12 pb-16">
-                {/* Section header + sort options */}
                 <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-[#CC8400]/15 border border-[#CC8400]/25 flex items-center justify-center">
@@ -287,7 +327,7 @@ export default function OriginalsPage() {
                         <div>
                             <h2 className="text-white font-bold text-lg leading-tight">Explorar contingut</h2>
                             <p className="text-white/40 text-xs">
-                                {filteredVideos.length !== videos.length
+                                {loading ? 'Carregant...' : filteredVideos.length !== videos.length
                                     ? `${filteredVideos.length} de ${videos.length} vídeos`
                                     : `${videos.length} ${videos.length === 1 ? 'vídeo' : 'vídeos'}`
                                 }
@@ -295,7 +335,6 @@ export default function OriginalsPage() {
                         </div>
                     </div>
 
-                    {/* Sort pills */}
                     {videos.length > 0 && (
                         <div className="flex items-center gap-1.5 flex-wrap">
                             {SORT_OPTIONS.map(opt => (
@@ -314,35 +353,61 @@ export default function OriginalsPage() {
                     )}
                 </div>
 
-                {videos.length === 0 ? (
-                    <EmptyState onUpload={openUpload} />
-                ) : filteredVideos.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <HiMagnifyingGlass className="text-white/15 text-4xl mb-3" />
-                        <p className="text-white/50 text-sm font-medium mb-1">Cap resultat trobat</p>
-                        <p className="text-white/30 text-xs">
-                            Prova amb altres paraules o{' '}
-                            <button onClick={() => { setSearchQuery(''); setActiveCategory('') }}
-                                className="text-[#CC8400] hover:text-[#E09400] transition-colors">
-                                esborra els filtres
-                            </button>
-                        </p>
+                {/* Loading */}
+                {loading && (
+                    <div className="flex flex-col items-center justify-center py-24 gap-4">
+                        <svg className="animate-spin h-8 w-8 text-[#CC8400]/60" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                        <p className="text-white/35 text-sm">Carregant vídeos...</p>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-                        {filteredVideos.map(video => (
-                            <OriginalVideoCard
-                                key={video.id}
-                                video={video}
-                                isOwn={video.userId === String(currentUser?.id)}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                                onLike={handleLike}
-                                onView={handleView}
-                                onOpenCreator={setCreatorToShow}
-                            />
-                        ))}
+                )}
+
+                {/* Error */}
+                {!loading && loadError && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+                        <p className="text-white/50 text-sm">{loadError}</p>
+                        <button onClick={fetchVideos}
+                            className="px-4 py-2 rounded-xl bg-[#CC8400]/15 border border-[#CC8400]/30 text-[#CC8400] text-sm font-semibold
+                                       hover:bg-[#CC8400]/25 transition-colors">
+                            Tornar a intentar
+                        </button>
                     </div>
+                )}
+
+                {/* Contingut */}
+                {!loading && !loadError && (
+                    videos.length === 0 ? (
+                        <EmptyState onUpload={openUpload} />
+                    ) : filteredVideos.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <HiMagnifyingGlass className="text-white/15 text-4xl mb-3" />
+                            <p className="text-white/50 text-sm font-medium mb-1">Cap resultat trobat</p>
+                            <p className="text-white/30 text-xs">
+                                Prova amb altres paraules o{' '}
+                                <button onClick={() => { setSearchQuery(''); setActiveCategory('') }}
+                                    className="text-[#CC8400] hover:text-[#E09400] transition-colors">
+                                    esborra els filtres
+                                </button>
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                            {filteredVideos.map(video => (
+                                <OriginalVideoCard
+                                    key={video.id}
+                                    video={video}
+                                    isOwn={video.userId === String(currentUser?.id)}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    onLike={handleLike}
+                                    onView={handleView}
+                                    onOpenCreator={setCreatorToShow}
+                                />
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
 
@@ -354,6 +419,7 @@ export default function OriginalsPage() {
                 onClose={() => setPanelOpen(false)}
                 onEditVideo={handleEdit}
                 onDeleteVideo={handleDelete}
+                allVideos={videos}
             />
 
             {/* ── Creator Modal ──────────────────────────────────────────────── */}

@@ -10,6 +10,7 @@ export default function PantallaReproduccio() {
   const location = useLocation();
 
   const videoDirecte = location.state?.fonts ? location.state : null;
+  const keepOnEnd = location.state?.keepOnEnd ?? false;
   const { dades: videoBD, carregant, error } = useVideoAsset(videoDirecte ? null : urlId);
 
   const video = videoDirecte ?? videoBD;
@@ -110,7 +111,7 @@ export default function PantallaReproduccio() {
                 }
               }
             } catch (e) {}
-            navigate(-1);
+            if (!keepOnEnd) navigate(-1);
         }}
       />
 

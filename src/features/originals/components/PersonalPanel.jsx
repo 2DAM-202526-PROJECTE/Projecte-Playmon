@@ -5,11 +5,6 @@ import {
 } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
 
-function loadMyVideos() {
-    try { return JSON.parse(localStorage.getItem('playmon_originals') || '[]') }
-    catch { return [] }
-}
-
 // ─── Tab button ───────────────────────────────────────────────────────────────
 function Tab({ active, onClick, icon: Icon, label, count }) {
     return (
@@ -34,18 +29,7 @@ function Tab({ active, onClick, icon: Icon, label, count }) {
 }
 
 // ─── My videos list ───────────────────────────────────────────────────────────
-function MyVideosList({ onEdit, onDelete }) {
-    const user = getCurrentUser()
-    const [videos, setVideos] = useState(() =>
-        loadMyVideos().filter(v => v.userId === user?.id)
-    )
-
-    useEffect(() => {
-        const refresh = () => setVideos(loadMyVideos().filter(v => v.userId === user?.id))
-        window.addEventListener('storage', refresh)
-        return () => window.removeEventListener('storage', refresh)
-    }, [user?.id])
-
+function MyVideosList({ videos, onEdit, onDelete }) {
     if (videos.length === 0) return (
         <div className="flex flex-col items-center justify-center py-10 text-center px-2">
             <HiFilm className="text-white/15 text-3xl mb-2" />
@@ -92,7 +76,6 @@ function MyVideosList({ onEdit, onDelete }) {
     )
 }
 
-// ─── History empty state ──────────────────────────────────────────────────────
 function HistoryList() {
     return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-2">
@@ -103,7 +86,6 @@ function HistoryList() {
     )
 }
 
-// ─── Watchlist empty state ────────────────────────────────────────────────────
 function WatchlistPanel() {
     return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-2">
@@ -115,13 +97,12 @@ function WatchlistPanel() {
 }
 
 // ─── Main panel ───────────────────────────────────────────────────────────────
-export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVideo }) {
+export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVideo, allVideos = [] }) {
     const [activeTab, setActiveTab] = useState('videos')
     const user = getCurrentUser()
 
-    const myVideos = loadMyVideos().filter(v => v.userId === user?.id)
+    const myVideos = allVideos.filter(v => v.userId === String(user?.id))
 
-    // Trap focus / close on Escape
     useEffect(() => {
         const onKey = (e) => { if (e.key === 'Escape') onClose() }
         window.addEventListener('keydown', onKey)
@@ -130,14 +111,12 @@ export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVi
 
     return (
         <>
-            {/* Overlay */}
             <div
                 className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300
                     ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
                 onClick={onClose}
             />
 
-            {/* Drawer */}
             <div className={`fixed top-0 right-0 h-full z-50 w-full max-w-sm bg-[#0f0f0f] border-l border-white/8
                              shadow-2xl flex flex-col transition-transform duration-300 ease-out
                              ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -180,7 +159,7 @@ export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVi
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto px-4 py-4" style={{ scrollbarWidth: 'thin', scrollbarColor: '#333 transparent' }}>
                     {activeTab === 'videos' && (
-                        <MyVideosList onEdit={onEditVideo} onDelete={onDeleteVideo} />
+                        <MyVideosList videos={myVideos} onEdit={onEditVideo} onDelete={onDeleteVideo} />
                     )}
                     {activeTab === 'history' && <HistoryList />}
                     {activeTab === 'watchlist' && <WatchlistPanel />}
