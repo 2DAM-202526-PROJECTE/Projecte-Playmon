@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { HiXMark, HiCloudArrowUp, HiFilm, HiPhoto, HiCheckCircle, HiPlus } from 'react-icons/hi2'
+import { getCurrentUser } from '@/api/authApi'
+import { uploadVideo, updateVideo } from '@/api/videosApi'
 
 const PRESET_CATEGORIES = [
     'Acció', 'Comèdia', 'Drama', 'Thriller', 'Terror',
@@ -38,16 +40,11 @@ function DropZone({ label, icon: Icon, accept, file, onFile, hint }) {
                 className="hidden"
                 onChange={(e) => e.target.files[0] && onFile(e.target.files[0])}
             />
-
             {file ? (
                 <>
                     <HiCheckCircle className="text-[#CC8400] text-3xl" />
-                    <p className="text-white/90 text-sm font-medium text-center truncate max-w-full px-2">
-                        {file.name}
-                    </p>
-                    <p className="text-white/40 text-xs">
-                        {(file.size / (1024 * 1024)).toFixed(1)} MB · Clic per canviar
-                    </p>
+                    <p className="text-white/90 text-sm font-medium text-center truncate max-w-full px-2">{file.name}</p>
+                    <p className="text-white/40 text-xs">{(file.size / (1024 * 1024)).toFixed(1)} MB · Clic per canviar</p>
                 </>
             ) : (
                 <>
@@ -59,9 +56,7 @@ function DropZone({ label, icon: Icon, accept, file, onFile, hint }) {
                         <p className="text-white/80 text-sm font-medium">{label}</p>
                         <p className="text-white/40 text-xs mt-0.5">{hint}</p>
                     </div>
-                    <span className="text-[#CC8400] text-xs border border-[#CC8400]/40 rounded-full px-3 py-1">
-                        Seleccionar fitxer
-                    </span>
+                    <span className="text-[#CC8400] text-xs border border-[#CC8400]/40 rounded-full px-3 py-1">Seleccionar fitxer</span>
                 </>
             )}
         </div>
@@ -70,18 +65,20 @@ function DropZone({ label, icon: Icon, accept, file, onFile, hint }) {
 
 export default function VideoFormModal({ onClose, onSave, initialData }) {
     const isEditing = !!initialData
+    const currentUser = getCurrentUser()
 
     const [title, setTitle] = useState(initialData?.title || '')
     const [description, setDescription] = useState(initialData?.description || '')
-    const [category, setCategory] = useState(initialData?.category || '')
+    const [category, setCategory] = useState(initialData?.category || initialData?.categoria || '')
     const [showCustomInput, setShowCustomInput] = useState(false)
     const [customInput, setCustomInput] = useState('')
     const customInputRef = useRef(null)
     const [videoFile, setVideoFile] = useState(null)
     const [thumbFile, setThumbFile] = useState(null)
-    const [thumbPreview, setThumbPreview] = useState(initialData?.thumbnailDataUrl || null)
+    const [thumbPreview, setThumbPreview] = useState(initialData?.thumbnailDataUrl || initialData?.thumbnail_url || null)
     const [errors, setErrors] = useState({})
     const [saving, setSaving] = useState(false)
+    const [uploadError, setUploadError] = useState(null)
 
     useEffect(() => {
         if (thumbFile) {
@@ -99,33 +96,51 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
         return e
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         const errs = validate()
         if (Object.keys(errs).length > 0) { setErrors(errs); return }
 
         setSaving(true)
-        setTimeout(() => {
-            onSave({
-                title: title.trim(),
-                description: description.trim(),
-                category,
-                videoFileName: videoFile?.name || initialData?.videoFileName || null,
-                thumbnailDataUrl: thumbPreview || null,
-            })
+        setUploadError(null)
+
+        try {
+            let savedVideo
+
+            if (isEditing) {
+                savedVideo = await updateVideo(initialData.id, {
+                    title: title.trim(),
+                    description: description.trim(),
+                    categoria: category || null,
+                    thumbnail: thumbFile || null,
+                })
+            } else {
+                savedVideo = await uploadVideo({
+                    file: videoFile,
+                    thumbnail: thumbFile || null,
+                    title: title.trim(),
+                    description: description.trim(),
+                    categoria: category || null,
+                    isPublic: true,
+                    userId: currentUser?.id,
+                })
+            }
+
+            onSave(savedVideo)
+        } catch (err) {
+            setUploadError(err.message || 'Error desconegut. Torna-ho a intentar.')
+        } finally {
             setSaving(false)
-        }, 400)
+        }
     }
 
     return (
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
+            onClick={(e) => e.target === e.currentTarget && !saving && onClose()}
         >
-            {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
-            {/* Modal */}
             <div className="relative z-10 w-full max-w-lg bg-[#111111] border border-white/10 rounded-2xl shadow-2xl
                             max-h-[90vh] overflow-y-auto"
                 style={{ scrollbarWidth: 'none' }}>
@@ -141,8 +156,9 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                         </h2>
                     </div>
                     <button
-                        onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center transition-colors"
+                        onClick={() => !saving && onClose()}
+                        disabled={saving}
+                        className="w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center transition-colors disabled:opacity-40"
                     >
                         <HiXMark className="text-white/70 text-lg" />
                     </button>
@@ -150,6 +166,13 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+
+                    {/* Error global */}
+                    {uploadError && (
+                        <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                            {uploadError}
+                        </div>
+                    )}
 
                     {/* Títol */}
                     <div>
@@ -197,64 +220,46 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                     <div>
                         <label className="block text-white/70 text-sm font-medium mb-1.5">Categoria</label>
                         <div className="flex flex-wrap gap-2">
-                            {/* Sense categoria */}
-                            <button
-                                type="button"
-                                onClick={() => setCategory('')}
+                            <button type="button" onClick={() => setCategory('')}
                                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border
                                     ${category === ''
                                         ? 'bg-white/20 border-white/40 text-white font-bold'
                                         : 'bg-white/5 border-white/10 text-white/50 hover:border-white/30 hover:text-white/80'
-                                    }`}
-                            >
+                                    }`}>
                                 Sense categoria
                             </button>
 
-                            {/* Categories predefinides */}
                             {PRESET_CATEGORIES.map(cat => (
-                                <button
-                                    key={cat}
-                                    type="button"
+                                <button key={cat} type="button"
                                     onClick={() => { setCategory(cat); setShowCustomInput(false) }}
                                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border
                                         ${category === cat
                                             ? 'bg-[#CC8400] border-[#CC8400] text-black font-bold'
                                             : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30 hover:text-white/80'
-                                        }`}
-                                >
+                                        }`}>
                                     {cat}
                                 </button>
                             ))}
 
-                            {/* Categoria personalitzada ja creada */}
                             {category && !PRESET_CATEGORIES.includes(category) && category !== '' && (
-                                <span className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold
-                                                 bg-[#CC8400] border-[#CC8400] text-black border">
+                                <span className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-[#CC8400] border-[#CC8400] text-black border">
                                     {category}
-                                    <button
-                                        type="button"
-                                        onClick={() => setCategory('')}
-                                        className="ml-0.5 hover:opacity-70 transition-opacity"
-                                    >
+                                    <button type="button" onClick={() => setCategory('')} className="ml-0.5 hover:opacity-70 transition-opacity">
                                         <HiXMark className="text-xs" />
                                     </button>
                                 </span>
                             )}
 
-                            {/* Botó afegir categoria */}
                             {!showCustomInput && (
-                                <button
-                                    type="button"
+                                <button type="button"
                                     onClick={() => { setShowCustomInput(true); setTimeout(() => customInputRef.current?.focus(), 50) }}
                                     className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200
-                                               border border-dashed border-white/20 text-white/40 hover:border-[#CC8400]/50 hover:text-[#CC8400]"
-                                >
+                                               border border-dashed border-white/20 text-white/40 hover:border-[#CC8400]/50 hover:text-[#CC8400]">
                                     <HiPlus className="text-xs" /> Crea la teva
                                 </button>
                             )}
                         </div>
 
-                        {/* Input categoria personalitzada */}
                         {showCustomInput && (
                             <div className="mt-2 flex gap-2 items-center">
                                 <input
@@ -275,47 +280,39 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                                     className="flex-1 bg-white/5 border border-[#CC8400]/40 rounded-xl px-3 py-2 text-white placeholder-white/30 text-xs
                                                outline-none focus:border-[#CC8400]/70 focus:bg-white/8 transition-colors"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const val = customInput.trim()
-                                        if (val) { setCategory(val); setCustomInput(''); setShowCustomInput(false) }
-                                    }}
-                                    className="px-3 py-2 rounded-xl bg-[#CC8400] text-black text-xs font-bold hover:bg-[#E09400] transition-colors"
-                                >
+                                <button type="button"
+                                    onClick={() => { const val = customInput.trim(); if (val) { setCategory(val); setCustomInput(''); setShowCustomInput(false) } }}
+                                    className="px-3 py-2 rounded-xl bg-[#CC8400] text-black text-xs font-bold hover:bg-[#E09400] transition-colors">
                                     Afegir
                                 </button>
-                                <button
-                                    type="button"
+                                <button type="button"
                                     onClick={() => { setShowCustomInput(false); setCustomInput('') }}
-                                    className="px-3 py-2 rounded-xl border border-white/15 text-white/50 text-xs hover:bg-white/5 transition-colors"
-                                >
+                                    className="px-3 py-2 rounded-xl border border-white/15 text-white/50 text-xs hover:bg-white/5 transition-colors">
                                     Cancel·lar
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    {/* Vídeo drag-and-drop */}
-                    <div>
-                        <label className="block text-white/70 text-sm font-medium mb-1.5">
-                            Fitxer de vídeo {!isEditing && <span className="text-[#CC8400]">*</span>}
-                            {isEditing && initialData?.videoFileName && (
-                                <span className="text-white/30 font-normal ml-2">· {initialData.videoFileName}</span>
-                            )}
-                        </label>
-                        <DropZone
-                            label="Arrossega el teu vídeo aquí"
-                            icon={HiCloudArrowUp}
-                            accept="video/*"
-                            file={videoFile}
-                            onFile={setVideoFile}
-                            hint="MP4, MOV, AVI, MKV · Arrossega o fes clic per seleccionar"
-                        />
-                        {errors.video && <p className="text-red-400 text-xs mt-1">{errors.video}</p>}
-                    </div>
+                    {/* Vídeo (només en creació) */}
+                    {!isEditing && (
+                        <div>
+                            <label className="block text-white/70 text-sm font-medium mb-1.5">
+                                Fitxer de vídeo <span className="text-[#CC8400]">*</span>
+                            </label>
+                            <DropZone
+                                label="Arrossega el teu vídeo aquí"
+                                icon={HiCloudArrowUp}
+                                accept="video/*"
+                                file={videoFile}
+                                onFile={(f) => { setVideoFile(f); setErrors(p => ({ ...p, video: null })) }}
+                                hint="MP4, MOV, AVI, MKV · Arrossega o fes clic per seleccionar"
+                            />
+                            {errors.video && <p className="text-red-400 text-xs mt-1">{errors.video}</p>}
+                        </div>
+                    )}
 
-                    {/* Miniatura drag-and-drop */}
+                    {/* Miniatura */}
                     <div>
                         <label className="block text-white/70 text-sm font-medium mb-1.5">
                             Miniatura <span className="text-white/30 font-normal">(opcional)</span>
@@ -347,9 +344,10 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                     <div className="flex gap-3 pt-2">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => !saving && onClose()}
+                            disabled={saving}
                             className="flex-1 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium
-                                hover:bg-white/5 hover:border-white/25 hover:text-white transition-all duration-200"
+                                hover:bg-white/5 hover:border-white/25 hover:text-white transition-all duration-200 disabled:opacity-40"
                         >
                             Cancel·lar
                         </button>
@@ -357,9 +355,19 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                             type="submit"
                             disabled={saving}
                             className="flex-1 py-2.5 rounded-xl bg-[#CC8400] text-black text-sm font-bold
-                                hover:bg-[#E09400] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                                hover:bg-[#E09400] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
                         >
-                            {saving ? 'Desant...' : isEditing ? 'Desar canvis' : 'Publicar vídeo'}
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-black" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    </svg>
+                                    {isEditing ? 'Desant...' : 'Pujant vídeo...'}
+                                </>
+                            ) : (
+                                isEditing ? 'Desar canvis' : 'Publicar vídeo'
+                            )}
                         </button>
                     </div>
                 </form>

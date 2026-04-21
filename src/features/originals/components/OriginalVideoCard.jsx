@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare } from 'react-icons/hi2'
+import { useNavigate } from 'react-router-dom'
 import { getCurrentUser } from '@/api/authApi'
 
 function formatDate(isoString) {
@@ -13,6 +14,7 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
     const [copied, setCopied] = useState(false)
 
     const currentUser = getCurrentUser()
+    const navigate = useNavigate()
     const likes = video.likes ?? []
     const views = video.views ?? 0
     const isLiked = currentUser ? likes.includes(String(currentUser.id)) : false
@@ -27,6 +29,19 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
     const handlePlayClick = (e) => {
         e.stopPropagation()
         onView?.(video.id)
+        navigate(`/play/${video.id}`, {
+            state: {
+                id: video.id,
+                titol: video.title,
+                descripcio: video.description,
+                poster: video.thumbnailDataUrl || null,
+                fonts: { hls: null, mp4: video.videoUrl },
+                genere: video.category || null,
+                any: null,
+                duracioText: null,
+                keepOnEnd: true,
+            }
+        })
     }
 
     const handleCreatorClick = (e) => {
@@ -52,7 +67,9 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
     }
 
     return (
-        <div className="group relative bg-[#1A1A1A] border border-white/8 rounded-2xl overflow-hidden
+        <div
+            onClick={handlePlayClick}
+            className="group relative bg-[#1A1A1A] border border-white/8 rounded-2xl overflow-hidden cursor-pointer
                         hover:border-white/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.6)] transition-all duration-300">
 
             {/* Thumbnail */}
@@ -118,7 +135,7 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
                 {/* Bottom row: author + date + like */}
                 <div className="flex items-center gap-2">
                     {/* Author (clicable) */}
-                    <button onClick={handleCreatorClick}
+                    <button onClick={(e) => { e.stopPropagation(); handleCreatorClick(e) }}
                         className="flex items-center gap-1.5 min-w-0 flex-1 hover:opacity-80 transition-opacity">
                         {video.userAvatar ? (
                             <img src={video.userAvatar} alt={video.username}
@@ -169,7 +186,7 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
 
                 {/* Own actions */}
                 {isOwn && (
-                    <div className="mt-3 pt-3 border-t border-white/8 flex gap-2">
+                    <div onClick={(e) => e.stopPropagation()} className="mt-3 pt-3 border-t border-white/8 flex gap-2">
                         {confirmDelete ? (
                             <>
                                 <span className="text-white/50 text-xs flex-1 self-center">Confirmar?</span>
