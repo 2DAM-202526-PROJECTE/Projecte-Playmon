@@ -137,7 +137,7 @@ export default function ModalCanviarAvatar({
     <div className="fixed inset-0 z-[9999]">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onTancar}
         aria-hidden="true"
       />
@@ -149,21 +149,19 @@ export default function ModalCanviarAvatar({
         className="relative mx-auto mt-16 w-[92%] max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-3xl bg-white p-5 shadow-xl ring-1 ring-black/10 md:p-6">
+        <div className="rounded-3xl p-5 md:p-6 border border-white/[0.08] relative" style={{ background: 'rgba(10,10,10,0.97)', boxShadow: '0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)' }}>
+          {/* Línia daurada superior */}
+          <div className="absolute top-0 left-6 right-6 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(204,132,0,0.5), transparent)' }} />
+
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">
-                Canviar foto de perfil
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Formats: JPG/PNG/WEBP · Màxim {MIDA_MAX_MB}MB
-              </p>
+              <h2 className="text-lg font-bold text-white">Canviar foto de perfil</h2>
+              <p className="mt-1 text-sm text-white/45">Formats: JPG/PNG/WEBP · Màxim {MIDA_MAX_MB}MB</p>
             </div>
-
             <button
               type="button"
               onClick={onTancar}
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              className="grid h-8 w-8 place-items-center rounded-full border border-white/10 text-white/40 hover:border-white/20 hover:text-white/70 transition-all text-sm"
             >
               ✕
             </button>
@@ -171,15 +169,11 @@ export default function ModalCanviarAvatar({
 
           {/* Preview */}
           <div className="mt-5 flex flex-col items-center gap-4">
-            <div className="relative h-36 w-36 overflow-hidden rounded-full bg-slate-200 ring-4 ring-white shadow-lg">
+            <div className="relative h-36 w-36 overflow-hidden rounded-full border-2 border-[#CC8400]/30 shadow-[0_0_30px_rgba(204,132,0,0.1)]" style={{ background: 'rgba(255,255,255,0.04)' }}>
               {urlMostrada ? (
-                <img
-                  src={urlMostrada}
-                  alt="Previsualització avatar"
-                  className="h-full w-full object-cover"
-                />
+                <img src={urlMostrada} alt="Previsualització avatar" className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full w-full place-items-center text-sm font-semibold text-slate-600">
+                <div className="grid h-full w-full place-items-center text-sm font-semibold text-white/30">
                   Sense foto
                 </div>
               )}
@@ -193,11 +187,11 @@ export default function ModalCanviarAvatar({
                 className="hidden"
                 onChange={onCanviFitxer}
               />
-
               <button
                 type="button"
                 onClick={seleccionarFitxer}
-                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:brightness-95"
+                className="rounded-xl px-5 py-2 text-sm font-bold text-black transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)' }}
               >
                 Seleccionar imatge
               </button>
@@ -209,30 +203,19 @@ export default function ModalCanviarAvatar({
                     try {
                       setGuardant(true);
                       setError("");
-
                       await onEliminar();
-                      mostraToast({
-                        tipus: "info",
-                        titol: "Avatar eliminat",
-                        missatge: "Has eliminat la foto de perfil.",
-                        duracio: 2500,
-                      });
+                      mostraToast({ tipus: "info", titol: "Avatar eliminat", missatge: "Has eliminat la foto de perfil.", duracio: 2500 });
                       onTancar?.();
                     } catch (err) {
                       const m = err?.message ?? "No s'ha pogut eliminar l'avatar.";
                       setError(m);
-                      mostraToast({
-                        tipus: "error",
-                        titol: "Error eliminant l'avatar",
-                        missatge: m,
-                        duracio: 4500,
-                      });
+                      mostraToast({ tipus: "error", titol: "Error eliminant l'avatar", missatge: m, duracio: 4500 });
                     } finally {
                       setGuardant(false);
                     }
                   }}
                   disabled={guardant}
-                  className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-slate-50"
+                  className="rounded-xl border border-red-500/20 px-5 py-2 text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all"
                 >
                   Eliminar foto
                 </button>
@@ -240,18 +223,14 @@ export default function ModalCanviarAvatar({
             </div>
 
             {fitxer ? (
-              <div className="w-full rounded-2xl bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-black/5">
-                <div className="font-semibold">{fitxer.name}</div>
-                <div className="text-xs text-slate-500">
-                  {(fitxer.size / (1024 * 1024)).toFixed(2)} MB · {fitxer.type}
-                </div>
+              <div className="w-full rounded-xl bg-white/[0.03] border border-white/[0.07] p-3 text-sm">
+                <div className="font-semibold text-white/80">{fitxer.name}</div>
+                <div className="text-xs text-white/35 mt-0.5">{(fitxer.size / (1024 * 1024)).toFixed(2)} MB · {fitxer.type}</div>
               </div>
             ) : null}
 
             {error ? (
-              <div className="w-full rounded-2xl bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-100">
-                {error}
-              </div>
+              <div className="w-full rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">{error}</div>
             ) : null}
           </div>
 
@@ -260,26 +239,24 @@ export default function ModalCanviarAvatar({
             <button
               type="button"
               onClick={onTancar}
-              className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-slate-50"
+              className="rounded-xl border border-white/10 px-5 py-2 text-sm font-semibold text-white/50 hover:bg-white/5 hover:text-white/70 transition-all"
               disabled={guardant}
             >
               Cancel·lar
             </button>
-
             <button
               type="button"
               onClick={guardar}
               disabled={guardant || !fitxer}
-              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-60"
+              className="rounded-xl px-5 py-2 text-sm font-bold text-black disabled:opacity-50 transition-all hover:-translate-y-0.5"
+              style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)' }}
             >
               {guardant ? "Guardant..." : "Guardar avatar"}
             </button>
           </div>
         </div>
 
-        <p className="mt-3 text-center text-xs text-white/80">
-          Pots tancar amb ESC o clicant fora.
-        </p>
+        <p className="mt-3 text-center text-xs text-white/40">Pots tancar amb ESC o clicant fora.</p>
       </div>
     </div>,
     document.body

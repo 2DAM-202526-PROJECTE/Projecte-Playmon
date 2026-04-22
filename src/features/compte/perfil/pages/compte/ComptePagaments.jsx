@@ -291,7 +291,7 @@ function CurrentPlanCard({ plan, onChangePlan }) {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {plan.features.map((feature) => (
               <div key={feature} className="flex items-start gap-2 text-gray-200">
-                <FiCheck className="mt-1 shrink-0 text-[#3b9eff]" />
+                <FiCheck className="mt-1 shrink-0 text-[#CC8400]" />
                 <span>{feature}</span>
               </div>
             ))}
