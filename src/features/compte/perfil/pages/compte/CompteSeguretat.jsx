@@ -33,8 +33,7 @@ export default function CompteSeguretat() {
           Activitat de seguretat recent
         </h2>
 
-        <div className="overflow-hidden rounded-2xl bg-[#303134] ring-1 ring-white/10">
-          {/* Item activitat */}
+        <div className="overflow-hidden rounded-2xl bg-white/[0.03] border border-white/[0.08]">
           <Fila
             principal={activitat.titol}
             secundari={activitat.dataLloc}
@@ -44,7 +43,6 @@ export default function CompteSeguretat() {
 
           <Separador />
 
-          {/* CTA */}
           <Fila
             principal="Revisa l'activitat de seguretat"
             esquerraIcona={null}
@@ -59,7 +57,7 @@ export default function CompteSeguretat() {
         <h2 className="text-sm font-semibold text-white/80">Els teus dispositius</h2>
         <p className="text-sm text-white/60">Dispositius en què tens la sessió iniciada</p>
 
-        <div className="overflow-hidden rounded-2xl bg-[#303134] ring-1 ring-white/10">
+        <div className="overflow-hidden rounded-2xl bg-white/[0.03] border border-white/[0.08]">
           <Fila
             principal={`${dispositius.windows.sessions} sessions en ordinadors Windows`}
             secundari={dispositius.windows.resum}
@@ -121,16 +119,12 @@ function Fila({
     <button
       type="button"
       onClick={onClick}
-      className={[
-        "group flex w-full items-center justify-between gap-4 px-6 py-4 text-left",
-        "hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20",
-      ].join(" ")}
+      className="group flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-white/[0.04] border-l-2 border-transparent hover:border-[#CC8400]/40 focus:outline-none transition-all duration-200"
     >
       <div className="flex min-w-0 items-start gap-4">
-        {/* Icona esquerra */}
-        <div className="mt-1 text-white/60">
+        <div className="mt-1 text-white/35 group-hover:text-[#CC8400]/70 transition-colors">
           {esquerraIcona ? (
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white/5 ring-1 ring-white/10">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white/[0.04] border border-white/[0.08] group-hover:bg-[#CC8400]/10 group-hover:border-[#CC8400]/20 transition-all">
               {esquerraIcona}
             </span>
           ) : (
@@ -138,26 +132,18 @@ function Fila({
           )}
         </div>
 
-        {/* Text */}
         <div className="min-w-0">
-          <div
-            className={[
-              "text-sm font-semibold",
-              esCTA ? "text-white" : "text-white",
-            ].join(" ")}
-          >
+          <div className="text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
             {principal}
           </div>
-
           {secundari ? (
-            <div className="mt-1 text-sm text-white/65">{secundari}</div>
+            <div className="mt-1 text-sm text-white/45">{secundari}</div>
           ) : null}
         </div>
       </div>
 
-      {/* Dreta: badge o chevron */}
       {badge ? (
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-black/30 text-xs font-semibold text-white/80 ring-1 ring-white/10">
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#CC8400]/10 border border-[#CC8400]/20 text-xs font-semibold text-[#CC8400]">
           {badge}
         </span>
       ) : (

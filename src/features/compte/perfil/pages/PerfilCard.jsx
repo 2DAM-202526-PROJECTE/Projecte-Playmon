@@ -20,22 +20,35 @@ export default function PerfilCard({
   const planInfo = planMapping[normalizedPlan] || planMapping.basic;
 
   return (
-    <section className="w-full rounded-3xl bg-[#1f1f1f] px-6 py-12 sm:px-12 sm:py-16 ring-1 ring-white/10 shadow-2xl">
+    <section className="w-full rounded-3xl px-6 py-12 sm:px-12 sm:py-16 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(204,132,0,0.04) 100%)',
+        border: '1px solid rgba(204,132,0,0.18)',
+        boxShadow: '0 0 60px rgba(204,132,0,0.07), 0 1px 0 0 rgba(204,132,0,0.25) inset'
+      }}>
+      {/* Línia daurada superior */}
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(204,132,0,0.5), transparent)' }} />
+      {/* Glow de fons */}
+      <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(204,132,0,0.08) 0%, transparent 70%)' }} />
+
       {/* Acció d'editar nom de perfil */}
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-end mb-6 relative z-10">
         <button
           type="button"
           onClick={onEditProfile}
-          className="rounded-full bg-white/10 px-6 py-2.5 text-sm font-bold text-white hover:bg-[#CC8400] transition-all duration-300 shadow-lg"
+          className="rounded-xl border border-white/10 px-6 py-2.5 text-sm font-bold text-white/70 hover:text-black hover:border-transparent transition-all duration-300"
+          style={{ '--hover-bg': 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)'; e.currentTarget.style.color = 'black'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; }}
         >
           Editar perfil
         </button>
       </div>
 
       {/* Avatar + camps centrats */}
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center relative z-10">
         <div className="relative inline-block mb-10">
-          <div className="h-48 w-48 sm:h-56 sm:w-56 overflow-hidden rounded-full bg-white/5 ring-4 ring-white/10 shadow-2xl">
+          <div className="h-48 w-48 sm:h-56 sm:w-56 overflow-hidden rounded-full bg-white/5 shadow-2xl" style={{ boxShadow: '0 0 0 3px rgba(204,132,0,0.25), 0 0 40px rgba(204,132,0,0.1)' }}>
             {avatar ? (
               <img src={avatar} alt="Foto de perfil" className="h-full w-full object-cover" />
             ) : (
@@ -51,7 +64,8 @@ export default function PerfilCard({
             title="Canviar foto"
             aria-label="Canviar foto"
             onClick={onChangePhoto}
-            className="absolute bottom-2 right-2 z-50 grid h-14 w-14 place-items-center rounded-full bg-[#202124] ring-4 ring-[#1f1f1f] hover:bg-white/20 transition-all shadow-xl"
+            className="absolute bottom-2 right-2 z-50 grid h-14 w-14 place-items-center rounded-full transition-all shadow-xl hover:scale-110"
+            style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)', boxShadow: '0 0 20px rgba(204,132,0,0.4)' }}
           >
             {cameraIcon ? (
               <img src={cameraIcon} alt="" className="h-7 w-7 opacity-90" />
@@ -97,12 +111,12 @@ export default function PerfilCard({
 
         {/* Cercador */}
         <div className="mt-12 w-full max-w-3xl">
-          <div className="flex items-center gap-4 rounded-full bg-white/5 px-6 py-4 sm:py-5 border border-white/10 focus-within:border-[#CC8400]/50 focus-within:bg-white/10 transition-all shadow-inner group">
+          <div className="flex items-center gap-4 rounded-2xl bg-white/[0.03] px-6 py-4 sm:py-5 border border-white/[0.08] focus-within:border-[#CC8400]/40 focus-within:bg-white/[0.06] transition-all group">
             <SearchIcon className="group-focus-within:text-[#CC8400] transition-colors" />
             <input
               type="search"
               placeholder="Cerca al Compte"
-              className="w-full bg-transparent text-base sm:text-lg text-white outline-none placeholder:text-white/40"
+              className="w-full bg-transparent text-base sm:text-lg text-white outline-none placeholder:text-white/30"
             />
           </div>
         </div>

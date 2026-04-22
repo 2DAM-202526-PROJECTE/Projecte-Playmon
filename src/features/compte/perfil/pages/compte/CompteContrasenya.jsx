@@ -38,7 +38,7 @@ export default function CompteContrasenya() {
     if (n.length < 8) return "La nova contrasenya ha de tindre mínim 8 caràcters.";
     if (n !== confirmaContrasenya.trim()) return "Les contrasenyes no coincideixen.";
     if (n === contrasenyaActual.trim())
-      return "La nova contrasenya no pot ser igual a l’actual.";
+      return "La nova contrasenya no pot ser igual a l'actual.";
     return "";
   };
 
@@ -67,7 +67,7 @@ export default function CompteContrasenya() {
         duracio: 2500,
       });
     } catch (err) {
-      const m = err?.message ?? "No s’ha pogut verificar la contrasenya.";
+      const m = err?.message ?? "No s'ha pogut verificar la contrasenya.";
       setError(m);
       mostraToast({ tipus: "error", titol: "Error", missatge: m, duracio: 4000 });
     } finally {
@@ -95,7 +95,7 @@ export default function CompteContrasenya() {
       mostraToast({
         tipus: "exit",
         titol: "Contrasenya actualitzada",
-        missatge: "S’ha canviat la contrasenya correctament.",
+        missatge: "S'ha canviat la contrasenya correctament.",
         duracio: 3000,
       });
 
@@ -107,7 +107,7 @@ export default function CompteContrasenya() {
       setMostraActual(false);
       setMostraNova(false);
     } catch (err) {
-      const m = err?.message ?? "No s’ha pogut canviar la contrasenya.";
+      const m = err?.message ?? "No s'ha pogut canviar la contrasenya.";
       setError(m);
       mostraToast({ tipus: "error", titol: "Error", missatge: m, duracio: 4500 });
     } finally {
@@ -116,188 +116,144 @@ export default function CompteContrasenya() {
   };
 
   return (
-    <div className="rounded-3xl bg-transparent">
-      <div className="rounded-3xl bg-[#202124] p-6 text-white ring-1 ring-white/10 md:p-10">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start">
-          {/* Columna esquerra (estil Google) */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <GoogleG />
-              <span className="text-sm font-semibold text-white/80">Compte</span>
+    <div className="space-y-6">
+      {/* Capçalera */}
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight text-white">
+          {pas === 1 ? "Verifica la teva identitat" : "Canvia la contrasenya"}
+        </h1>
+        <p className="max-w-3xl text-sm text-white/60">
+          {pas === 1
+            ? "Per continuar, primer verifica que ets tu. Introdueix la contrasenya actual del teu compte."
+            : "Introdueix una nova contrasenya segura per protegir el teu compte."}
+        </p>
+      </header>
+
+      {/* Indicador de pas */}
+      <div className="flex items-center gap-3">
+        <div className={`h-1.5 w-16 rounded-full transition-all duration-300 ${pas >= 1 ? 'bg-[#CC8400]' : 'bg-white/10'}`} />
+        <div className={`h-1.5 w-16 rounded-full transition-all duration-300 ${pas >= 2 ? 'bg-[#CC8400]' : 'bg-white/10'}`} />
+        <span className="text-xs text-white/35 ml-1">Pas {pas} de 2</span>
+      </div>
+
+      {/* Formulari */}
+      <section className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-6 md:p-8">
+        {pas === 1 ? (
+          <form onSubmit={handleSeguent} className="space-y-5 max-w-md">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#CC8400] uppercase tracking-widest opacity-80">
+                Contrasenya actual
+              </label>
+              <input
+                type={mostraActual ? "text" : "password"}
+                value={contrasenyaActual}
+                onChange={(e) => setContrasenyaActual(e.target.value)}
+                className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-sm text-white outline-none focus:border-[#CC8400]/50 focus:bg-white/[0.07] transition-all placeholder-white/25"
+                placeholder="Contrasenya actual"
+                autoFocus
+              />
             </div>
 
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight">
-              {pas === 1 ? "Verifica la teva identitat" : "Canvia la contrasenya"}
-            </h1>
+            <label className="flex items-center gap-3 text-sm text-white/55 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={mostraActual}
+                onChange={(e) => setMostraActual(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-white/5 accent-[#CC8400]"
+              />
+              Mostra la contrasenya
+            </label>
 
-            <p className="max-w-md text-sm text-white/65">
-              {pas === 1
-                ? "Per continuar, primer verifica la teva identitat."
-                : "Introdueix una nova contrasenya segura."}
-            </p>
-          </div>
+            {error ? (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">
+                {error}
+              </div>
+            ) : null}
 
-          {/* Columna dreta (formulari) */}
-          <div className="space-y-4">
-            {pas === 1 ? (
-              <form onSubmit={handleSeguent} className="space-y-4">
-                <div className="rounded-2xl bg-[#1f1f1f] p-5 ring-1 ring-white/10">
-                  <label className="text-xs font-semibold text-white/70">
-                    Introdueix la contrasenya
-                  </label>
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={() => mostraToast({ tipus: "info", titol: "Opcions alternatives", missatge: "Pots implementar 2FA o codi per email.", duracio: 3000 })}
+                className="text-sm text-[#CC8400]/70 font-semibold hover:text-[#CC8400] transition-colors"
+              >
+                Prova una altra manera
+              </button>
+              <button
+                type="submit"
+                disabled={carregant}
+                className="rounded-xl px-6 py-2.5 text-sm font-bold text-black disabled:opacity-60 transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)', boxShadow: carregant ? 'none' : '0 0 20px rgba(204,132,0,0.2)' }}
+              >
+                {carregant ? "Verificant..." : "Següent →"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleCanviar} className="space-y-5 max-w-md">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#CC8400] uppercase tracking-widest opacity-80">
+                Nova contrasenya
+              </label>
+              <input
+                type={mostraNova ? "text" : "password"}
+                value={novaContrasenya}
+                onChange={(e) => setNovaContrasenya(e.target.value)}
+                className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-sm text-white outline-none focus:border-[#CC8400]/50 focus:bg-white/[0.07] transition-all placeholder-white/25"
+                placeholder="Mínim 8 caràcters"
+                autoFocus
+              />
+            </div>
 
-                  <input
-                    type={mostraActual ? "text" : "password"}
-                    value={contrasenyaActual}
-                    onChange={(e) => setContrasenyaActual(e.target.value)}
-                    className="mt-2 w-full rounded-xl bg-transparent px-3 py-3 text-sm text-white outline-none ring-1 ring-white/20 focus:ring-2 focus:ring-[#8ab4f8]/40"
-                    placeholder="Contrasenya actual"
-                    autoFocus
-                  />
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#CC8400] uppercase tracking-widest opacity-80">
+                Confirma la nova contrasenya
+              </label>
+              <input
+                type={mostraNova ? "text" : "password"}
+                value={confirmaContrasenya}
+                onChange={(e) => setConfirmaContrasenya(e.target.value)}
+                className="w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-sm text-white outline-none focus:border-[#CC8400]/50 focus:bg-white/[0.07] transition-all placeholder-white/25"
+                placeholder="Repeteix la contrasenya"
+              />
+            </div>
 
-                  <label className="mt-4 flex items-center gap-3 text-sm text-white/75">
-                    <input
-                      type="checkbox"
-                      checked={mostraActual}
-                      onChange={(e) => setMostraActual(e.target.checked)}
-                      className="h-4 w-4 rounded border-white/30 bg-transparent"
-                    />
-                    Mostra la contrasenya
-                  </label>
+            <label className="flex items-center gap-3 text-sm text-white/55 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={mostraNova}
+                onChange={(e) => setMostraNova(e.target.checked)}
+                className="h-4 w-4 rounded border-white/20 bg-white/5 accent-[#CC8400]"
+              />
+              Mostra la contrasenya
+            </label>
 
-                  {error ? (
-                    <div className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-200 ring-1 ring-red-500/20">
-                      {error}
-                    </div>
-                  ) : null}
-                </div>
+            {error ? (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">
+                {error}
+              </div>
+            ) : null}
 
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      mostraToast({
-                        tipus: "info",
-                        titol: "Opcions alternatives",
-                        missatge: "Ací pots implementar 2FA, codi per email, etc.",
-                        duracio: 3000,
-                      });
-                    }}
-                    className="text-sm text-orange-400 font-semibold text-[#8ab4f8] hover:underline"
-                  >
-                    Prova una altra manera
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={carregant}
-                    className="rounded-full bg-orange-400 px-6 py-2.5 text-sm font-semibold text-[#202124] hover:brightness-95 disabled:opacity-60"
-                  >
-                    {carregant ? "Verificant..." : "Següent"}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleCanviar} className="space-y-4">
-                <div className="rounded-2xl bg-[#1f1f1f] p-5 ring-1 ring-white/10">
-                  <label className="text-xs font-semibold text-white/70">
-                    Nova contrasenya
-                  </label>
-
-                  <input
-                    type={mostraNova ? "text" : "password"}
-                    value={novaContrasenya}
-                    onChange={(e) => setNovaContrasenya(e.target.value)}
-                    className="mt-2 w-full rounded-xl bg-transparent px-3 py-3 text-sm text-white outline-none ring-1 ring-white/20 focus:ring-2 focus:ring-[#8ab4f8]/40"
-                    placeholder="Mínim 8 caràcters"
-                    autoFocus
-                  />
-
-                  <label className="mt-4 text-xs font-semibold text-white/70">
-                    Confirma la nova contrasenya
-                  </label>
-
-                  <input
-                    type={mostraNova ? "text" : "password"}
-                    value={confirmaContrasenya}
-                    onChange={(e) => setConfirmaContrasenya(e.target.value)}
-                    className="mt-2 w-full rounded-xl bg-transparent px-3 py-3 text-sm text-white outline-none ring-1 ring-white/20 focus:ring-2 focus:ring-[#8ab4f8]/40"
-                    placeholder="Repeteix la contrasenya"
-                  />
-
-                  <label className="mt-4 flex items-center gap-3 text-sm text-white/75">
-                    <input
-                      type="checkbox"
-                      checked={mostraNova}
-                      onChange={(e) => setMostraNova(e.target.checked)}
-                      className="h-4 w-4 rounded border-white/30 bg-transparent"
-                    />
-                    Mostra la contrasenya
-                  </label>
-
-                  {error ? (
-                    <div className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm text-red-200 ring-1 ring-red-500/20">
-                      {error}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPas(1);
-                      setError("");
-                    }}
-                    className="rounded-full bg-white/10 px-5 py-2 text-sm font-semibold text-white hover:bg-white/15"
-                  >
-                    Enrere
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={carregant}
-                    className="rounded-full bg-[#8ab4f8] px-6 py-2.5 text-sm font-semibold text-[#202124] hover:brightness-95 disabled:opacity-60"
-                  >
-                    {carregant ? "Guardant..." : "Canviar contrasenya"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={() => { setPas(1); setError(""); }}
+                className="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-semibold text-white/60 hover:bg-white/5 hover:text-white/80 transition-all"
+              >
+                ← Enrere
+              </button>
+              <button
+                type="submit"
+                disabled={carregant}
+                className="rounded-xl px-6 py-2.5 text-sm font-bold text-black disabled:opacity-60 transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)', boxShadow: carregant ? 'none' : '0 0 20px rgba(204,132,0,0.2)' }}
+              >
+                {carregant ? "Guardant..." : "Canviar contrasenya"}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
     </div>
   );
 }
 
-/* ---------------- UI petits ---------------- */
-function CompteChip({ email }) {
-  return (
-    <div className="inline-flex items-center gap-3 rounded-full bg-white/5 px-4 py-2 ring-1 ring-white/10">
-      <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs font-semibold text-white/80">
-        <UserMini />
-      </span>
-      <span className="text-sm text-white/80">{email}</span>
-      <span className="text-white/50">▾</span>
-    </div>
-  );
-}
-
-function GoogleG() {
-  // Simplificat (decoratiu)
-  return (
-    <div className="grid h-8 w-8 place-items-center rounded-full bg-white/5 ring-1 ring-white/10">
-      <span className="text-sm font-bold text-white/80">C</span>
-    </div>
-  );
-}
-
-function UserMini() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="8" r="4" />
-    </svg>
-  );
-}

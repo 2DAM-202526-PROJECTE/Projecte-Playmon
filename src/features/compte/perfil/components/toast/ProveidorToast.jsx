@@ -60,35 +60,79 @@ export function useToast() {
 function ToastItem({ toast, onClose }) {
   const { tipus, titol, missatge } = toast;
 
-  const estil = {
-    exit: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    error: "border-red-200 bg-red-50 text-red-900",
-    info: "border-slate-200 bg-white text-slate-900",
-  }[tipus] ?? "border-slate-200 bg-white text-slate-900";
-
-  const punt = {
-    exit: "bg-emerald-500",
-    error: "bg-red-500",
-    info: "bg-slate-400",
-  }[tipus] ?? "bg-slate-400";
+  const config = {
+    exit: {
+      border: 'rgba(52,211,153,0.25)',
+      glow: 'rgba(52,211,153,0.08)',
+      dot: '#34d399',
+      dotGlow: 'rgba(52,211,153,0.4)',
+      titleColor: '#6ee7b7',
+      textColor: 'rgba(255,255,255,0.6)',
+      accent: 'rgba(52,211,153,0.5)',
+    },
+    error: {
+      border: 'rgba(248,113,113,0.25)',
+      glow: 'rgba(248,113,113,0.08)',
+      dot: '#f87171',
+      dotGlow: 'rgba(248,113,113,0.4)',
+      titleColor: '#fca5a5',
+      textColor: 'rgba(255,255,255,0.6)',
+      accent: 'rgba(248,113,113,0.5)',
+    },
+    info: {
+      border: 'rgba(204,132,0,0.25)',
+      glow: 'rgba(204,132,0,0.06)',
+      dot: '#CC8400',
+      dotGlow: 'rgba(204,132,0,0.4)',
+      titleColor: '#fbbf24',
+      textColor: 'rgba(255,255,255,0.6)',
+      accent: 'rgba(204,132,0,0.5)',
+    },
+  }[tipus] ?? {
+    border: 'rgba(255,255,255,0.12)',
+    glow: 'rgba(255,255,255,0.03)',
+    dot: '#9ca3af',
+    dotGlow: 'rgba(156,163,175,0.3)',
+    titleColor: 'rgba(255,255,255,0.9)',
+    textColor: 'rgba(255,255,255,0.55)',
+    accent: 'rgba(255,255,255,0.2)',
+  };
 
   return (
-    <div className={`pointer-events-auto rounded-2xl border p-4 shadow-lg ring-1 ring-black/5 ${estil}`}>
+    <div
+      className="pointer-events-auto rounded-2xl p-4 relative overflow-hidden"
+      style={{
+        background: 'rgba(10,10,10,0.92)',
+        border: `1px solid ${config.border}`,
+        boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 0 20px ${config.glow}`,
+        backdropFilter: 'blur(20px)',
+      }}
+    >
+      {/* Línia accent superior */}
+      <div className="absolute top-0 left-4 right-4 h-px" style={{ background: `linear-gradient(90deg, transparent, ${config.accent}, transparent)` }} />
+
       <div className="flex items-start gap-3">
-        <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${punt}`} />
+        {/* Dot amb glow */}
+        <div className="mt-1 relative flex-shrink-0">
+          <span className="block h-2.5 w-2.5 rounded-full" style={{ background: config.dot, boxShadow: `0 0 8px ${config.dotGlow}` }} />
+        </div>
+
         <div className="min-w-0 flex-1">
           {titol ? (
-            <div className="text-sm font-semibold">{titol}</div>
+            <div className="text-sm font-bold" style={{ color: config.titleColor }}>{titol}</div>
           ) : null}
           {missatge ? (
-            <div className="mt-1 text-sm opacity-90">{missatge}</div>
+            <div className="mt-0.5 text-xs leading-relaxed" style={{ color: config.textColor }}>{missatge}</div>
           ) : null}
         </div>
 
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full px-2 py-1 text-sm font-semibold opacity-70 hover:bg-black/5 hover:opacity-100"
+          className="grid h-6 w-6 place-items-center rounded-full text-xs transition-all"
+          style={{ color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = ''; }}
           aria-label="Tancar notificació"
         >
           ✕
