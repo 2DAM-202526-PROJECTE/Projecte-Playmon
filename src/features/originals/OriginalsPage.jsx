@@ -323,30 +323,63 @@ export default function OriginalsPage() {
     }
 
     return (
-        <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
+        <div className="min-h-screen bg-[#080808] relative">
+
+            {/* ── Fons cinematogràfic ambient (igual que la locked screen) ──── */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full opacity-[0.05]"
+                    style={{ background: 'radial-gradient(circle, #CC8400 0%, transparent 65%)' }} />
+                <div className="absolute -top-60 -left-60 w-[600px] h-[600px] rounded-full opacity-[0.04]"
+                    style={{ background: 'radial-gradient(circle, #FFB800 0%, transparent 70%)' }} />
+                <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full opacity-[0.04]"
+                    style={{ background: 'radial-gradient(circle, #CC8400 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.012]"
+                    style={{ backgroundImage: 'linear-gradient(rgba(204,132,0,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(204,132,0,0.8) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+            </div>
+
+            <div className="relative z-10">
             <Header />
 
             {/* ── Hero ──────────────────────────────────────────────────────── */}
             <section className="relative px-6 md:px-12 pt-12 pb-10 overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-10 blur-3xl pointer-events-none"
+                {/* Glow focused al hero */}
+                <div className="absolute top-0 left-1/4 w-[500px] h-[250px] rounded-full opacity-[0.12] blur-3xl pointer-events-none"
                     style={{ background: 'radial-gradient(ellipse, #CC8400 0%, transparent 70%)' }} />
 
                 <div className="relative max-w-3xl">
-                    <div className="inline-flex items-center gap-2 mb-4">
-                        <span className="text-[11px] font-black tracking-[0.18em] px-3 py-1 rounded-full
-                                         text-[#CC8400] bg-[#CC8400]/10 border border-[#CC8400]/30">
-                            CONTINGUT DE LA COMUNITAT
-                        </span>
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-5"
+                        style={{ background: 'rgba(204,132,0,0.08)', borderColor: 'rgba(204,132,0,0.3)' }}>
+                        <HiStar className="text-xs" style={{ color: '#CC8400' }} />
+                        <span className="text-[11px] font-black tracking-[0.18em] uppercase" style={{ color: '#CC8400' }}>Contingut de la Comunitat</span>
+                        <HiStar className="text-xs" style={{ color: '#CC8400' }} />
                     </div>
 
-                    <div className="flex items-start gap-4 mb-5">
-                        <div className="w-14 h-14 rounded-2xl bg-[#CC8400]/15 border border-[#CC8400]/30 flex items-center justify-center flex-shrink-0">
-                            <HiStar className="text-[#CC8400] text-2xl" />
+                    {/* Títol amb icona composta */}
+                    <div className="flex items-center gap-5 mb-5">
+                        {/* Icona concèntrica (igual que locked screen) */}
+                        <div className="relative flex-shrink-0">
+                            <div className="absolute inset-0 rounded-full blur-2xl opacity-30"
+                                style={{ background: 'radial-gradient(circle, #CC8400, transparent)' }} />
+                            <div className="w-20 h-20 rounded-full border border-[#CC8400]/15 flex items-center justify-center">
+                                <div className="w-14 h-14 rounded-full border border-[#CC8400]/25 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center border border-[#CC8400]/45 shadow-[0_0_30px_rgba(204,132,0,0.2)]"
+                                        style={{ background: 'linear-gradient(135deg, rgba(204,132,0,0.25) 0%, rgba(255,184,0,0.08) 100%)' }}>
+                                        <HiSparkles className="text-xl" style={{ color: '#CC8400' }} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="absolute -top-0.5 right-2 w-2 h-2 rounded-full blur-sm" style={{ background: '#CC8400', opacity: 0.55 }} />
+                            <div className="absolute bottom-1 -left-0.5 w-1.5 h-1.5 rounded-full blur-sm" style={{ background: '#FFB800', opacity: 0.45 }} />
                         </div>
+
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none">
-                                PLAYMON<br />
-                                <span style={{ WebkitTextStroke: '1px #CC8400', color: 'transparent' }}>ORIGINALS</span>
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-none">
+                                <span className="text-white">PLAYMON</span><br />
+                                <span style={{
+                                    background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 40%, #E09400 70%, #FFB800 100%)',
+                                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
+                                }}>ORIGINALS</span>
                             </h1>
                         </div>
                     </div>
@@ -359,9 +392,11 @@ export default function OriginalsPage() {
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={openUpload}
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#CC8400] text-black font-bold text-sm
-                                       hover:bg-[#E09400] hover:shadow-[0_0_24px_rgba(204,132,0,0.4)] active:scale-95
-                                       transition-all duration-200"
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-black text-sm
+                                       transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                            style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 50%, #E09400 100%)', boxShadow: '0 0 30px rgba(204,132,0,0.25)' }}
+                            onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 50px rgba(204,132,0,0.45)'}
+                            onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 30px rgba(204,132,0,0.25)'}
                         >
                             <HiPlus className="text-base" />
                             Puja el teu vídeo
@@ -369,9 +404,11 @@ export default function OriginalsPage() {
 
                         <button
                             onClick={() => setPanelOpen(true)}
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-white/15 text-white/80 font-semibold text-sm
-                                       bg-white/5 hover:bg-white/10 hover:border-white/30 active:scale-95
-                                       transition-all duration-200"
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm
+                                       transition-all duration-200 active:scale-95"
+                            style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.04)' }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
                         >
                             <HiUser className="text-base" />
                             El meu espai
@@ -380,7 +417,8 @@ export default function OriginalsPage() {
                 </div>
             </section>
 
-            <div className="mx-6 md:mx-12 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-10" />
+            <div className="mx-6 md:mx-12 h-px mb-10"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(204,132,0,0.25), transparent)' }} />
 
             {/* ── Cerca + filtres de categoria ──────────────────────────────── */}
             <div className="px-6 md:px-12 mb-6">
@@ -556,6 +594,7 @@ export default function OriginalsPage() {
                     onSave={handleSave}
                 />
             )}
+        </div>
         </div>
     )
 }
