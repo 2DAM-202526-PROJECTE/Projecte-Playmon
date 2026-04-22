@@ -78,7 +78,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
                 id: movie.id,
                 titol: movie.title || movie.name || 'Sense títol',
                 poster: movie.backdrop_path || movie.poster_path || '',
-                fonts: { hls: null, mp4: FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] },
+                fonts: { hls: null, mp4: movie.video_url || FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] },
                 any: (movie.release_date || movie.first_air_date || '').slice(0, 4) || null,
                 genere: movie.genres?.[0]?.name || null,
                 duracioText: null,

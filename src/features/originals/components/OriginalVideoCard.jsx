@@ -40,6 +40,7 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
                 any: null,
                 duracioText: null,
                 keepOnEnd: true,
+                isOriginal: true,
             }
         })
     }

@@ -76,10 +76,56 @@ function EmptyState({ onUpload }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function OriginalsPage() {
     const currentUser = getCurrentUser()
+    
+    // Validació del pla
+    const hasUltraPlan = currentUser?.pla_pagament?.toLowerCase() === 'ultra'
+
     const [rawVideos, setRawVideos] = useState([])   // dades de la API
     const [meta, setMeta] = useState(loadMeta)        // likes/views locals
     const [loading, setLoading] = useState(true)
     const [loadError, setLoadError] = useState(null)
+
+    if (!hasUltraPlan) {
+        return (
+            <div className="min-h-screen pt-24 bg-[#111] flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
+                <div className="max-w-md w-full bg-[#1c1c1e] border border-white/10 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden animate-fade-in-up">
+                    <div className="absolute top-0 right-0 h-1 bg-gradient-to-r from-[#CC8400] to-[#E09400] left-0"></div>
+                    <div className="w-20 h-20 bg-[#CC8400]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <span className="text-4xl text-[#CC8400]">👑</span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Contingut Exclusiu</h2>
+                    <p className="text-white/60 mb-6 text-sm">
+                        La secció de Playmon Originals i els seus creadors només està disponible per a membres VIP.
+                    </p>
+                    
+                    <div className="bg-black/40 rounded-xl p-4 mb-6 border border-white/5 shadow-inner">
+                        <p className="text-xs text-white/50 mb-1 uppercase tracking-wider font-semibold">El teu pla actual</p>
+                        <p className="text-xl font-bold text-white tracking-wide">
+                            {currentUser?.pla_pagament ? currentUser.pla_pagament.toUpperCase() : 'GRATUÏT'}
+                        </p>
+                    </div>
+
+                    <p className="text-xs text-white/40 mb-6 leading-relaxed">
+                        Desbloqueja les estrenes oficials d'Usuaris Originals, aconsegueix zero anuncis, resolució màxima i finança de manera directa als creadors.
+                    </p>
+
+                    <button 
+                        onClick={() => window.location.href = '/compte/pagaments'} 
+                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#CC8400] to-[#E09400] text-black font-semibold shadow-[0_0_20px_rgba(204,132,0,0.3)] hover:shadow-[0_0_30px_rgba(204,132,0,0.5)] transform hover:-translate-y-1 transition-all duration-300"
+                    >
+                        Millorar al Pla Ultra
+                    </button>
+                    
+                    <button 
+                         onClick={() => window.location.href = '/'} 
+                         className="w-full mt-3 py-3 rounded-xl bg-transparent border border-white/10 text-white/70 font-medium hover:bg-white/5 hover:text-white transition-all duration-200"
+                    >
+                         Tornar a l'Inici
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     const [showModal, setShowModal] = useState(false)
     const [editingVideo, setEditingVideo] = useState(null)
