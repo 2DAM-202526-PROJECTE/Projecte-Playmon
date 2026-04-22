@@ -5,6 +5,7 @@ import Slider from './components/Slider'
 import HomeFooter from './components/HomeFooter'
 import MovieCard from '@/components/MovieCard'
 import GlobalApi from '@/Services/GlobalApi'
+import { getCurrentUser } from '@/api/authApi'
 import { HiChevronLeft, HiChevronRight, HiArrowRight } from 'react-icons/hi2'
 
 // ── Definició de les files de categories ──────────────────────────────────────
@@ -281,11 +282,13 @@ function ContentRow({ title, subtitle, badge, badgeColor, color, genreId, type, 
 
 // ── Fila de Seguir Veient ───────────────────────────────────────────────────────
 function ContinueWatchingRow() {
+    const currentUser = getCurrentUser();
     const [savedItems, setSavedItems] = useState([]);
 
     useEffect(() => {
         const checkStorage = () => {
-            const saved = localStorage.getItem('playmon_continue');
+            const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+            const saved = localStorage.getItem(historyKey);
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);

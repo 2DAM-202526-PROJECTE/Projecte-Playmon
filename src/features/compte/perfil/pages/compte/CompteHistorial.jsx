@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import MovieCard from '@/components/MovieCard'
+import { getCurrentUser } from '@/api/authApi'
 
 export default function CompteHistorial() {
+    const currentUser = getCurrentUser();
     const [movies, setMovies] = useState([])
 
     useEffect(() => {
-        const stored = localStorage.getItem('playmon_continue');
+        const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+        const stored = localStorage.getItem(historyKey);
         let history = [];
         if (stored) {
             try {

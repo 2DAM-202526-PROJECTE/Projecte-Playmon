@@ -2,8 +2,10 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useVideoAsset } from "../hooks/useVideoAssets";
 import Reproductor from "./Reproductor";
+import { getCurrentUser } from "@/api/authApi";
 
 export default function PantallaReproduccio() {
+  const currentUser = getCurrentUser();
   const params = useParams();
   const urlId = params.id || params.videoId;
   const navigate = useNavigate();
@@ -16,7 +18,8 @@ export default function PantallaReproduccio() {
   const video = videoDirecte ?? videoBD;
 
   const [initialTime] = useState(() => {
-    const saved = localStorage.getItem('playmon_continue');
+    const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+    const saved = localStorage.getItem(historyKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -47,7 +50,8 @@ export default function PantallaReproduccio() {
       };
 
       try {
-        const saved = localStorage.getItem('playmon_continue');
+        const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+        const saved = localStorage.getItem(historyKey);
         let history = [];
         if (saved) {
           const parsed = JSON.parse(saved);
@@ -55,7 +59,7 @@ export default function PantallaReproduccio() {
         }
         history = history.filter(item => String(item.id) !== String(currentId));
         history.unshift(newItem);
-        localStorage.setItem('playmon_continue', JSON.stringify(history.slice(0, 100)));
+        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 100)));
       } catch (e) {}
     }
   };
@@ -97,7 +101,8 @@ export default function PantallaReproduccio() {
         onTornar={() => navigate(-1)}
         onFinal={() => {
             try {
-              const saved = localStorage.getItem('playmon_continue');
+              const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+              const saved = localStorage.getItem(historyKey);
               if (saved) {
                 const parsed = JSON.parse(saved);
                 let history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
@@ -107,7 +112,7 @@ export default function PantallaReproduccio() {
                 if (itemIndex > -1) {
                   history[itemIndex].completed = true;
                   history[itemIndex].savedTime = 0;
-                  localStorage.setItem('playmon_continue', JSON.stringify(history));
+                  localStorage.setItem(historyKey, JSON.stringify(history));
                 }
               }
             } catch (e) {}
