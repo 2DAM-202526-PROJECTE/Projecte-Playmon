@@ -36,8 +36,9 @@ export default function PantallaReproduccio() {
     if (!video) return;
     const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
     const currentId = videoDirecte ? videoDirecte.id : urlId;
+    const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
     
-    if (time > 0) {
+    if (time > 0 && !isOriginal) {
       const newItem = {
         id: currentId,
         title: video.titol,
@@ -107,12 +108,15 @@ export default function PantallaReproduccio() {
                 const parsed = JSON.parse(saved);
                 let history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
                 const currentId = videoDirecte ? videoDirecte.id : urlId;
+                const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
                 
-                const itemIndex = history.findIndex(item => String(item.id) === String(currentId));
-                if (itemIndex > -1) {
-                  history[itemIndex].completed = true;
-                  history[itemIndex].savedTime = 0;
-                  localStorage.setItem(historyKey, JSON.stringify(history));
+                if (!isOriginal) {
+                    const itemIndex = history.findIndex(item => String(item.id) === String(currentId));
+                    if (itemIndex > -1) {
+                      history[itemIndex].completed = true;
+                      history[itemIndex].savedTime = 0;
+                      localStorage.setItem(historyKey, JSON.stringify(history));
+                    }
                 }
               }
             } catch (e) {}
