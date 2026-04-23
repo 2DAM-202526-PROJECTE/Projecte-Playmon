@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useVideoAsset } from "../hooks/useVideoAssets";
 import Reproductor from "./Reproductor";
 import { getCurrentUser } from "@/api/authApi";
+import { addToHistory } from "@/api/originalsApi";
 
 export default function PantallaReproduccio() {
   const currentUser = getCurrentUser();
@@ -13,7 +14,15 @@ export default function PantallaReproduccio() {
 
   const videoDirecte = location.state?.fonts ? location.state : null;
   const keepOnEnd = location.state?.keepOnEnd ?? false;
+  const isOriginal = !!(videoDirecte?.isOriginal);
   const { dades: videoBD, carregant, error } = useVideoAsset(videoDirecte ? null : urlId);
+
+  const historialRegistrat = useRef(false);
+  useEffect(() => {
+    if (!isOriginal || !urlId || historialRegistrat.current || !currentUser) return;
+    historialRegistrat.current = true;
+    addToHistory(urlId).catch(() => {});
+  }, [isOriginal, urlId, currentUser]);
 
   const video = videoDirecte ?? videoBD;
 
@@ -33,13 +42,20 @@ export default function PantallaReproduccio() {
   });
 
   const handleTimeUpdate = (time) => {
-    if (!video) return;
-    const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
+    if (!video || time <= 0) return;
     const currentId = videoDirecte ? videoDirecte.id : urlId;
-    const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-    
-    if (time > 0 && !isOriginal) {
-      const newItem = {
+    const mediaType = isOriginal ? 'original' : (location.pathname.includes('/tv') ? 'tv' : 'movie');
+
+    try {
+      const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+      const saved = localStorage.getItem(historyKey);
+      let hist = [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        hist = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
+      }
+      hist = hist.filter(item => String(item.id) !== String(currentId));
+      hist.unshift({
         id: currentId,
         title: video.titol,
         name: video.titol,
@@ -47,22 +63,10 @@ export default function PantallaReproduccio() {
         poster_path: video.poster,
         media_type: mediaType,
         savedTime: time,
-        completed: false
-      };
-
-      try {
-        const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-        const saved = localStorage.getItem(historyKey);
-        let history = [];
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-        }
-        history = history.filter(item => String(item.id) !== String(currentId));
-        history.unshift(newItem);
-        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 100)));
-      } catch (e) {}
-    }
+        completed: false,
+      });
+      localStorage.setItem(historyKey, JSON.stringify(hist.slice(0, 100)));
+    } catch (e) {}
   };
 
   if (!videoDirecte && carregant) {
@@ -106,17 +110,13 @@ export default function PantallaReproduccio() {
               const saved = localStorage.getItem(historyKey);
               if (saved) {
                 const parsed = JSON.parse(saved);
-                let history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
+                let hist = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
                 const currentId = videoDirecte ? videoDirecte.id : urlId;
-                const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-                
-                if (!isOriginal) {
-                    const itemIndex = history.findIndex(item => String(item.id) === String(currentId));
-                    if (itemIndex > -1) {
-                      history[itemIndex].completed = true;
-                      history[itemIndex].savedTime = 0;
-                      localStorage.setItem(historyKey, JSON.stringify(history));
-                    }
+                const itemIndex = hist.findIndex(item => String(item.id) === String(currentId));
+                if (itemIndex > -1) {
+                  hist[itemIndex].completed = true;
+                  hist[itemIndex].savedTime = 0;
+                  localStorage.setItem(historyKey, JSON.stringify(hist));
                 }
               }
             } catch (e) {}

@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import {
     HiXMark, HiUser, HiFilm, HiBookmark, HiClock,
-    HiPencil, HiTrash
+    HiPencil, HiTrash, HiPlay
 } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
+import { useNavigate } from 'react-router-dom'
 
-// ─── Tab button ───────────────────────────────────────────────────────────────
+function formatRelativeTime(isoString) {
+    const diffMs = Date.now() - new Date(isoString)
+    const mins = Math.floor(diffMs / 60000)
+    if (mins < 1) return 'Ara mateix'
+    if (mins < 60) return `Fa ${mins} min`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `Fa ${hours}h`
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'Ahir'
+    if (days < 7) return `Fa ${days} dies`
+    return new Date(isoString).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' })
+}
+
 function Tab({ active, onClick, icon: Icon, label, count }) {
     return (
         <button
@@ -28,7 +41,37 @@ function Tab({ active, onClick, icon: Icon, label, count }) {
     )
 }
 
-// ─── My videos list ───────────────────────────────────────────────────────────
+function VideoRow({ video, subtitle, actionIcon: ActionIcon, onAction, actionTitle, onPlay }) {
+    return (
+        <div className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group items-center">
+            <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d] relative cursor-pointer"
+                onClick={onPlay}>
+                {video.thumbnailDataUrl
+                    ? <img src={video.thumbnailDataUrl} alt={video.title} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center"
+                        style={{ background: 'linear-gradient(135deg,#1a0f00,#0d0d0d)' }}>
+                        <HiFilm className="text-[#CC8400]/30 text-lg" />
+                    </div>
+                }
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <HiPlay className="text-white text-base translate-x-0.5" />
+                </div>
+            </div>
+            <div className="flex-1 min-w-0 cursor-pointer" onClick={onPlay}>
+                <p className="text-white/85 text-xs font-medium truncate group-hover:text-[#CC8400] transition-colors">{video.title}</p>
+                <p className="text-white/35 text-[10px] mt-0.5">{subtitle}</p>
+            </div>
+            {ActionIcon && (
+                <button onClick={onAction}
+                    title={actionTitle}
+                    className="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100">
+                    <ActionIcon className="text-xs" />
+                </button>
+            )}
+        </div>
+    )
+}
+
 function MyVideosList({ videos, onEdit, onDelete }) {
     if (videos.length === 0) return (
         <div className="flex flex-col items-center justify-center py-10 text-center px-2">
@@ -38,11 +81,10 @@ function MyVideosList({ videos, onEdit, onDelete }) {
     )
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
             {videos.map(video => (
                 <div key={video.id}
                     className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group">
-                    {/* Thumbnail */}
                     <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
                         {video.thumbnailDataUrl
                             ? <img src={video.thumbnailDataUrl} alt={video.title} className="w-full h-full object-cover" />
@@ -52,14 +94,12 @@ function MyVideosList({ videos, onEdit, onDelete }) {
                             </div>
                         }
                     </div>
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                         <p className="text-white/85 text-xs font-medium truncate">{video.title}</p>
                         {video.category && (
                             <span className="text-[10px] text-[#CC8400]/70">{video.category}</span>
                         )}
                     </div>
-                    {/* Actions */}
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 items-start pt-0.5">
                         <button onClick={() => onEdit(video)}
                             className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-[#CC8400] hover:bg-[#CC8400]/10 transition-all">
@@ -76,32 +116,106 @@ function MyVideosList({ videos, onEdit, onDelete }) {
     )
 }
 
-function HistoryList() {
-    return (
+function HistoryList({ history, allVideos, onClearHistory }) {
+    const navigate = useNavigate()
+    const videoMap = Object.fromEntries(allVideos.map(v => [v.id, v]))
+    const entries = history
+        .map(h => ({ video: videoMap[h.videoId], watchedAt: h.watchedAt }))
+        .filter(e => e.video)
+
+    if (entries.length === 0) return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-2">
             <HiClock className="text-white/15 text-4xl mb-3" />
             <p className="text-white/50 text-sm font-medium mb-1">Encara no hi ha res a l'historial</p>
             <p className="text-white/30 text-xs max-w-[200px]">Els vídeos d'Originals que vegis apareixeran aquí.</p>
         </div>
     )
-}
 
-function WatchlistPanel() {
+    const handlePlay = (video) => {
+        navigate(`/play/${video.id}`, {
+            state: {
+                id: video.id, titol: video.title, descripcio: video.description,
+                poster: video.thumbnailDataUrl || null,
+                fonts: { hls: null, mp4: video.videoUrl },
+                genere: video.category || null, any: null, duracioText: null,
+                keepOnEnd: true, isOriginal: true,
+            }
+        })
+    }
+
     return (
-        <div className="flex flex-col items-center justify-center py-12 text-center px-2">
-            <HiBookmark className="text-white/15 text-4xl mb-3" />
-            <p className="text-white/50 text-sm font-medium mb-1">Encara no tens cap vídeo guardat</p>
-            <p className="text-white/30 text-xs max-w-[200px]">Desa els vídeos d'Originals que t'interessin per trobar-los fàcilment.</p>
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between mb-2">
+                <p className="text-white/30 text-[10px] uppercase tracking-widest">{entries.length} {entries.length === 1 ? 'vídeo' : 'vídeos'}</p>
+                <button onClick={onClearHistory}
+                    className="text-[10px] text-white/30 hover:text-red-400 transition-colors px-2 py-0.5 rounded">
+                    Esborrar historial
+                </button>
+            </div>
+            {entries.map(({ video, watchedAt }) => (
+                <VideoRow
+                    key={video.id + watchedAt}
+                    video={video}
+                    subtitle={formatRelativeTime(watchedAt)}
+                    onPlay={() => handlePlay(video)}
+                />
+            ))}
         </div>
     )
 }
 
-// ─── Main panel ───────────────────────────────────────────────────────────────
-export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVideo, allVideos = [] }) {
+function WatchlistPanel({ watchlist, allVideos, onToggleWatchlist }) {
+    const navigate = useNavigate()
+    const videoMap = Object.fromEntries(allVideos.map(v => [v.id, v]))
+    const saved = watchlist.map(id => videoMap[id]).filter(Boolean)
+
+    if (saved.length === 0) return (
+        <div className="flex flex-col items-center justify-center py-12 text-center px-2">
+            <HiBookmark className="text-white/15 text-4xl mb-3" />
+            <p className="text-white/50 text-sm font-medium mb-1">Encara no tens cap vídeo guardat</p>
+            <p className="text-white/30 text-xs max-w-[200px]">Prem el bookmark a qualsevol vídeo per desar-lo aquí.</p>
+        </div>
+    )
+
+    const handlePlay = (video) => {
+        navigate(`/play/${video.id}`, {
+            state: {
+                id: video.id, titol: video.title, descripcio: video.description,
+                poster: video.thumbnailDataUrl || null,
+                fonts: { hls: null, mp4: video.videoUrl },
+                genere: video.category || null, any: null, duracioText: null,
+                keepOnEnd: true, isOriginal: true,
+            }
+        })
+    }
+
+    return (
+        <div className="flex flex-col gap-1">
+            <p className="text-white/30 text-[10px] uppercase tracking-widest mb-2">{saved.length} {saved.length === 1 ? 'vídeo guardat' : 'vídeos guardats'}</p>
+            {saved.map(video => (
+                <VideoRow
+                    key={video.id}
+                    video={video}
+                    subtitle={video.username}
+                    actionIcon={HiTrash}
+                    actionTitle="Eliminar de la llista"
+                    onAction={() => onToggleWatchlist(video.id)}
+                    onPlay={() => handlePlay(video)}
+                />
+            ))}
+        </div>
+    )
+}
+
+export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVideo, allVideos = [], history = [], watchlist = [], onToggleWatchlist, onClearHistory }) {
     const [activeTab, setActiveTab] = useState('videos')
     const user = getCurrentUser()
 
     const myVideos = allVideos.filter(v => v.userId === String(user?.id))
+
+    const historyCount = history
+        .map(h => allVideos.find(v => v.id === h.videoId))
+        .filter(Boolean).length
 
     useEffect(() => {
         const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -151,9 +265,9 @@ export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVi
                     <Tab active={activeTab === 'videos'} onClick={() => setActiveTab('videos')}
                         icon={HiFilm} label="Els meus vídeos" count={myVideos.length} />
                     <Tab active={activeTab === 'history'} onClick={() => setActiveTab('history')}
-                        icon={HiClock} label="Historial" />
+                        icon={HiClock} label="Historial" count={historyCount} />
                     <Tab active={activeTab === 'watchlist'} onClick={() => setActiveTab('watchlist')}
-                        icon={HiBookmark} label="Llista" />
+                        icon={HiBookmark} label="Llista" count={watchlist.length} />
                 </div>
 
                 {/* Content */}
@@ -161,8 +275,12 @@ export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVi
                     {activeTab === 'videos' && (
                         <MyVideosList videos={myVideos} onEdit={onEditVideo} onDelete={onDeleteVideo} />
                     )}
-                    {activeTab === 'history' && <HistoryList />}
-                    {activeTab === 'watchlist' && <WatchlistPanel />}
+                    {activeTab === 'history' && (
+                        <HistoryList history={history} allVideos={allVideos} onClearHistory={onClearHistory} />
+                    )}
+                    {activeTab === 'watchlist' && (
+                        <WatchlistPanel watchlist={watchlist} allVideos={allVideos} onToggleWatchlist={onToggleWatchlist} />
+                    )}
                 </div>
             </div>
         </>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare } from 'react-icons/hi2'
+import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare, HiBookmark } from 'react-icons/hi2'
 import { useNavigate } from 'react-router-dom'
 import { getCurrentUser } from '@/api/authApi'
 
@@ -8,9 +8,10 @@ function formatDate(isoString) {
     return d.toLocaleDateString('ca-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLike, onView, onOpenCreator }) {
+export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLike, onView, onOpenCreator, isSaved, onToggleSave }) {
     const [confirmDelete, setConfirmDelete] = useState(false)
     const [likeAnim, setLikeAnim] = useState(false)
+    const [saveAnim, setSaveAnim] = useState(false)
     const [copied, setCopied] = useState(false)
 
     const currentUser = getCurrentUser()
@@ -24,6 +25,13 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
         setLikeAnim(true)
         setTimeout(() => setLikeAnim(false), 300)
         onLike?.(video.id)
+    }
+
+    const handleSave = (e) => {
+        e.stopPropagation()
+        setSaveAnim(true)
+        setTimeout(() => setSaveAnim(false), 300)
+        onToggleSave?.(video.id)
     }
 
     const handlePlayClick = (e) => {
@@ -165,6 +173,20 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
                     >
                         <HiHeart className={`text-sm transition-all duration-200 ${isLiked ? 'fill-current' : ''}`} />
                         <span className="text-[10px] font-semibold">{likes.length}</span>
+                    </button>
+
+                    {/* Bookmark button */}
+                    <button
+                        onClick={handleSave}
+                        className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 flex-shrink-0
+                            ${saveAnim ? 'scale-125' : 'scale-100'}
+                            ${isSaved
+                                ? 'text-[#CC8400] bg-[#CC8400]/10'
+                                : 'text-white/40 hover:text-[#CC8400] hover:bg-[#CC8400]/8'
+                            }`}
+                        title={isSaved ? 'Eliminar de la llista' : 'Guardar a la llista'}
+                    >
+                        <HiBookmark className={`text-sm transition-all duration-200 ${isSaved ? 'fill-current' : ''}`} />
                     </button>
 
                     {/* Share button */}

@@ -8,15 +8,15 @@ import PersonalPanel from './components/PersonalPanel'
 import CreatorModal from './components/CreatorModal'
 import { getCurrentUser } from '@/api/authApi'
 import { getVideos, deleteVideo } from '@/api/videosApi'
+import { getHistory, clearHistory, getWatchlist, toggleWatchlist } from '@/api/originalsApi'
 
-// ─── localStorage metadata (likes i views, no persistits a BD) ───────────────
+// ─── localStorage (només meta local: likes i views) ──────────────────────────
 const META_KEY = 'playmon_originals_meta'
 
 function loadMeta() {
     try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') }
     catch { return {} }
 }
-
 function saveMeta(meta) {
     localStorage.setItem(META_KEY, JSON.stringify(meta))
 }
@@ -80,8 +80,10 @@ export default function OriginalsPage() {
     // Validació del pla
     const hasUltraPlan = currentUser?.pla_pagament?.toLowerCase() === 'ultra'
 
-    const [rawVideos, setRawVideos] = useState([])   // dades de la API
-    const [meta, setMeta] = useState(loadMeta)        // likes/views locals
+    const [rawVideos, setRawVideos] = useState([])
+    const [meta, setMeta] = useState(loadMeta)
+    const [history, setHistory] = useState([])
+    const [watchlist, setWatchlist] = useState([])
     const [loading, setLoading] = useState(true)
     const [loadError, setLoadError] = useState(null)
 
@@ -220,7 +222,20 @@ export default function OriginalsPage() {
         }
     }, [])
 
+    // ── Carregar historial i watchlist per usuari (des del backend) ──────────
+    const fetchActivity = useCallback(async () => {
+        if (!currentUser) return
+        try {
+            const [hist, wl] = await Promise.all([getHistory(), getWatchlist()])
+            setHistory(hist || [])
+            setWatchlist(wl || [])
+        } catch {
+            // silenci: l'activitat no és crítica
+        }
+    }, [currentUser])
+
     useEffect(() => { fetchVideos() }, [fetchVideos])
+    useEffect(() => { fetchActivity() }, [fetchActivity])
 
     // ── Vídeos normalitzats (API + metadata local) ───────────────────────────
     const videos = useMemo(() => rawVideos.map(v => normalizeVideo(v, meta)), [rawVideos, meta])
@@ -304,6 +319,7 @@ export default function OriginalsPage() {
     }
 
     const handleView = (videoId) => {
+        // Compta la visualització local una sola vegada per sessió
         const sessionKey = `playmon_originals_viewed_${videoId}`
         if (sessionStorage.getItem(sessionKey)) return
         sessionStorage.setItem(sessionKey, '1')
@@ -315,6 +331,26 @@ export default function OriginalsPage() {
             saveMeta(m)
             return m
         })
+    }
+
+    const handleToggleWatchlist = async (videoId) => {
+        const id = String(videoId)
+        // Actualització optimista
+        setWatchlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+        try {
+            await toggleWatchlist(videoId)
+        } catch {
+            fetchActivity() // revert si falla
+        }
+    }
+
+    const handleClearHistory = async () => {
+        setHistory([])
+        try {
+            await clearHistory()
+        } catch {
+            fetchActivity()
+        }
     }
 
     const openUpload = () => {
@@ -403,7 +439,7 @@ export default function OriginalsPage() {
                         </button>
 
                         <button
-                            onClick={() => setPanelOpen(true)}
+                            onClick={() => { setPanelOpen(true); fetchActivity() }}
                             className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm
                                        transition-all duration-200 active:scale-95"
                             style={{ border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.75)', background: 'rgba(255,255,255,0.04)' }}
@@ -554,10 +590,12 @@ export default function OriginalsPage() {
                                     key={video.id}
                                     video={video}
                                     isOwn={video.userId === String(currentUser?.id)}
+                                    isSaved={watchlist.includes(video.id)}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
                                     onLike={handleLike}
                                     onView={handleView}
+                                    onToggleSave={handleToggleWatchlist}
                                     onOpenCreator={setCreatorToShow}
                                 />
                             ))}
@@ -575,6 +613,10 @@ export default function OriginalsPage() {
                 onEditVideo={handleEdit}
                 onDeleteVideo={handleDelete}
                 allVideos={videos}
+                history={history}
+                watchlist={watchlist}
+                onToggleWatchlist={handleToggleWatchlist}
+                onClearHistory={handleClearHistory}
             />
 
             {/* ── Creator Modal ──────────────────────────────────────────────── */}
