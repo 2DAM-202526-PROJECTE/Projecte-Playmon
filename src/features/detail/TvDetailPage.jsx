@@ -15,6 +15,7 @@ function TvDetailPage() {
     const navigate = useNavigate()
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [related, setRelated] = useState([])
     const [activeTab, setActiveTab] = useState('episodes')
 
     useEffect(() => {
@@ -23,6 +24,11 @@ function TvDetailPage() {
             .then(resp => setData(resp.data))
             .catch(err => console.error(err))
             .finally(() => setLoading(false))
+
+        GlobalApi.getRelatedSeries(id)
+            .then(res => setRelated(res?.data?.results || []))
+            .catch(() => setRelated([]))
+
         window.scrollTo(0, 0)
     }, [id])
 
@@ -50,9 +56,6 @@ function TvDetailPage() {
     const crew = data.credits?.crew || []
     const trailerKey = data.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
         || data.videos?.results?.find(v => v.site === 'YouTube')?.key
-    const related = data.recommendations?.results?.length > 0
-        ? data.recommendations.results
-        : data.similar?.results || []
     const seasons = data.seasons || []
     const numSeasons = data.number_of_seasons || seasons.filter(s => s.season_number > 0).length
     const numEpisodes = data.number_of_episodes || 0

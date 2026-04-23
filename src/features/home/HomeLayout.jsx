@@ -5,6 +5,7 @@ import Slider from './components/Slider'
 import HomeFooter from './components/HomeFooter'
 import MovieCard from '@/components/MovieCard'
 import GlobalApi from '@/Services/GlobalApi'
+import { getCurrentUser } from '@/api/authApi'
 import { HiChevronLeft, HiChevronRight, HiArrowRight } from 'react-icons/hi2'
 
 // ── Definició de les files de categories ──────────────────────────────────────
@@ -279,6 +280,63 @@ function ContentRow({ title, subtitle, badge, badgeColor, color, genreId, type, 
     )
 }
 
+// ── Fila de Seguir Veient ───────────────────────────────────────────────────────
+function ContinueWatchingRow() {
+    const currentUser = getCurrentUser();
+    const [savedItems, setSavedItems] = useState([]);
+
+    useEffect(() => {
+        const checkStorage = () => {
+            const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
+            const saved = localStorage.getItem(historyKey);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Suportem tant el format antic de 1 objecte sol com el format de llista
+                    let history = Array.isArray(parsed) ? parsed : (parsed?.id && parsed.id !== 'undefined' ? [parsed] : []);
+                    history = history.filter(item => !item.completed);
+                    setSavedItems(history);
+                } catch (e) {
+                    setSavedItems([]);
+                }
+            } else {
+                setSavedItems([]);
+            }
+        };
+        checkStorage();
+        window.addEventListener('focus', checkStorage);
+        return () => window.removeEventListener('focus', checkStorage);
+    }, []);
+
+    if (savedItems.length === 0) return null;
+
+    return (
+        <section className='group/row px-6 md:px-12 py-6'>
+            <div className='flex items-end justify-between mb-4'>
+                <div className='flex flex-col gap-1'>
+                    <h2 className='text-white font-bold text-xl leading-tight'>Seguir viendo</h2>
+                    <p className='text-[#CC8400] text-xs font-normal'>Reprendre per on ho vas deixar</p>
+                </div>
+            </div>
+
+            <div className='flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4' style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {savedItems.map((item, i) => (
+                    <div key={item.id || i} className='flex-shrink-0 group/card relative snap-start w-[200px] md:w-[280px]'>
+                        <MovieCard movie={item} isContinueWatching={true} />
+                        {item.savedTime > 0 && (
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden z-10 pointer-events-none">
+                                <div className="h-full bg-[#CC8400]" style={{ width: `${Math.min(100, (item.savedTime / 7) * 100)}%` }}></div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            <div className='mt-6 h-px bg-white/5' />
+        </section>
+    );
+}
+
 // ── HomeLayout ─────────────────────────────────────────────────────────────────
 function HomeLayout() {
     return (
@@ -286,6 +344,7 @@ function HomeLayout() {
             <Header />
             <main className='pb-10'>
                 <Slider />
+                <ContinueWatchingRow />
                 <div className='mt-6'>
                     {CATEGORIES.map((cat, i) => (
                         <ContentRow key={i} {...cat} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePlayerController } from "@/features/reproductor/hooks/usePlayerController";
 
-export default function Reproductor({ titol, poster, fonts, onTornar, onFinal }) {
+export default function Reproductor({ titol, poster, fonts, initialTime = 0, onTimeUpdate, onTornar, onFinal }) {
   const {
     videoRef,
     containerRef,
@@ -9,7 +9,7 @@ export default function Reproductor({ titol, poster, fonts, onTornar, onFinal })
     fontActiva,
     errorCarrega,
     accions,
-  } = usePlayerController({ fonts });
+  } = usePlayerController({ fonts, initialTime });
 
   const [mostraControls, setMostraControls] = useState(true);
   const timerRef = useRef(null);
@@ -37,8 +37,12 @@ export default function Reproductor({ titol, poster, fonts, onTornar, onFinal })
   }, []);
 
   useEffect(() => {
-    if (estat.ended) onFinal?.();
-  }, [estat.ended, onFinal]);
+    if (estat.ended) {
+        onFinal?.();
+    } else if (estat.currentTime > 0) {
+        onTimeUpdate?.(estat.currentTime);
+    }
+  }, [estat.ended, estat.currentTime, onFinal, onTimeUpdate]);
 
   // Tecles ràpides
   useEffect(() => {
@@ -89,8 +93,6 @@ export default function Reproductor({ titol, poster, fonts, onTornar, onFinal })
         ref={videoRef}
         className="relative h-screen w-full bg-black object-contain"
         playsInline
-        // important per CORS si tens CDN separat:
-        crossOrigin="anonymous"
       />
 
       {/* Top bar (Disney+ style) */}

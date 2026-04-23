@@ -8,9 +8,9 @@ function UndoToast({ item, onUndo, onDismiss }) {
                         bg-[#1e1e1e] border border-white/15 rounded-2xl px-5 py-3.5 shadow-2xl
                         backdrop-blur-sm min-w-[280px] max-w-[420px]">
             <p className="text-white/80 text-sm flex-1 truncate">
-                <span className="text-white/45 mr-1">＋</span>
+                <span className="text-white/45 mr-1">★</span>
                 <span className="font-medium text-white/90">"{title}"</span>
-                {' '}eliminat de Veure més tard
+                {' '}eliminat de favorits
             </p>
             <div className="flex items-center gap-3 flex-shrink-0">
                 <button
@@ -30,13 +30,13 @@ function UndoToast({ item, onUndo, onDismiss }) {
     )
 }
 
-export default function CompteLlista() {
+export default function CompteFavorits() {
     const [movies, setMovies] = useState([])
     const [undoItem, setUndoItem] = useState(null)
     const timerRef = useRef(null)
 
     const refresh = () =>
-        setMovies(JSON.parse(localStorage.getItem('playmon_watchlist') || '[]'))
+        setMovies(JSON.parse(localStorage.getItem('playmon_favorites') || '[]'))
 
     useEffect(() => { refresh() }, [])
 
@@ -53,9 +53,9 @@ export default function CompteLlista() {
                 if (timerRef.current) clearTimeout(timerRef.current)
             }
         }
-        window.addEventListener('playmon:watchlist-changed', handler)
+        window.addEventListener('playmon:favorites-changed', handler)
         return () => {
-            window.removeEventListener('playmon:watchlist-changed', handler)
+            window.removeEventListener('playmon:favorites-changed', handler)
             if (timerRef.current) clearTimeout(timerRef.current)
         }
     }, [])
@@ -63,10 +63,10 @@ export default function CompteLlista() {
     const handleUndo = () => {
         if (!undoItem) return
         if (timerRef.current) clearTimeout(timerRef.current)
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        watchlist.push(undoItem)
-        localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
-        window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', {
+        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        favorites.push(undoItem)
+        localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
+        window.dispatchEvent(new CustomEvent('playmon:favorites-changed', {
             detail: { action: 'add', item: undoItem }
         }))
         setUndoItem(null)
@@ -80,17 +80,18 @@ export default function CompteLlista() {
     return (
         <div className="bg-[#111] p-6 lg:p-8 rounded-2xl min-h-[600px] border border-white/5">
             <div className="mb-8 border-b border-white/10 pb-6">
-                <h1 className="text-3xl font-bold text-white mb-2">Veure més tard</h1>
-                <p className="text-[#A0A0A0]">Totes les pel·lícules i sèries que has desat per a revisar-les.</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Favorits</h1>
+                <p className="text-[#A0A0A0]">Tot el contingut que has marcat com a favorit.</p>
             </div>
 
             {movies.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
+                            d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                     </svg>
-                    <h3 className="text-xl font-medium text-white/60 mb-2">La teva llista està buida</h3>
-                    <p className="text-white/40">Busca pel·lícules al catàleg i prem el botó '+' per començar a desar el teu contingut preferit.</p>
+                    <h3 className="text-xl font-medium text-white/60 mb-2">No tens cap favorit encara</h3>
+                    <p className="text-white/40">Prem l'estrella ★ en qualsevol pel·lícula o sèrie per afegir-la als teus favorits.</p>
                 </div>
             ) : (
                 <div className="flex flex-wrap gap-4 md:gap-6">

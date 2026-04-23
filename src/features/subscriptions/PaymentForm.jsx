@@ -18,8 +18,8 @@ import {
   FiArrowRight,
 } from "react-icons/fi";
 
-// Podeu canviar la clau per la vostra clau de prova de Stripe real.
-const stripePromise = loadStripe("pk_test_TYooMQauvdEDq54NiTphI7jx");
+// Clau pública de Stripe des de les variables d'entorn
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK ?? "pk_test_TYooMQauvdEDq54NiTphI7jx");
 
 const countryOptions = [
   { value: "AD", label: "Andorra" },
@@ -145,55 +145,105 @@ const PaymentFormInner = ({
 
     const cardElement = elements.getElement(CardNumberElement);
 
-    // Creem un mètode de pagament amb Stripe (SIMULACIÓ VERTADERA DE STRIPE)
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement,
-      billing_details: {
-        name: form.holder,
-        address: {
-          city: form.city,
-          country: form.country?.value,
-          line1: form.address,
-        },
-      },
-    });
+    try {
+      // 1. Demanem al nostre backend un clientSecret (PaymentIntent)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: selectedPlan.price,
+          currency: "eur",
+          planId: selectedPlan.id
+        })
+      });
 
-    if (error) {
-      setStripeError(error.message);
+      if (!response.ok) throw new Error("Error obtenint el client_secret del servidor");
+      const { clientSecret } = await response.json();
+
+      // 2. Confirmem el pagament amb Stripe
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: form.holder,
+            address: {
+              city: form.city,
+              country: form.country?.value,
+              line1: form.address,
+            },
+          },
+        },
+      });
+
+      if (result.error) {
+        setStripeError(result.error.message);
+      } else {
+        if (result.paymentIntent.status === "succeeded") {
+          console.log("[Stripe] Payment success:", result.paymentIntent.id);
+          onSuccess();
+        }
+      }
+    } catch (err) {
+      setStripeError(err.message || "Hi ha hagut un problema amb el pagament.");
+    } finally {
       setIsProcessing(false);
-    } else {
-      console.log("[Stripe Simulation] PaymentMethod created:", paymentMethod.id);
-      
-      // Simulem una mica de retard extra abans del succés si estem simulant.
-      setTimeout(() => {
-        setIsProcessing(false);
-        onSuccess?.();
-      }, 1000);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-[#1A1A1A]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#CC8400] via-[#E65100] to-[#CC8400]"></div>
+    <div className="max-w-2xl mx-auto space-y-4">
 
-      <div className="mb-8 flex justify-between items-start">
-        <div>
-          <h3 className="text-2xl font-bold text-white mb-2">
-            Dades de Pagament
-          </h3>
-          <p className="text-gray-400">
-            Estàs subscrivint-te al{" "}
-            <span className="text-[#CC8400] font-semibold">
-              {selectedPlan?.title || "Pla"}
-            </span>
-          </p>
+      {/* Panel targetes de test */}
+      <div className="rounded-2xl bg-[#0f1f0f]/80 border border-emerald-500/20 p-4 backdrop-blur-xl">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Stripe Test Mode — Targetes de prova</span>
         </div>
-        <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-xs font-semibold text-white">Stripe Test Mode</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
+            <span className="text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">✅ Pagament correcte</span>
+            <span className="text-white tracking-widest">4242 4242 4242 4242</span>
+            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
+          </div>
+          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
+            <span className="text-rose-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">❌ Rebutjat</span>
+            <span className="text-white tracking-widest">4000 0000 0000 0002</span>
+            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
+          </div>
+          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
+            <span className="text-amber-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">🔐 Requereix autenticació</span>
+            <span className="text-white tracking-widest">4000 0025 0000 3155</span>
+            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
+          </div>
+          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
+            <span className="text-sky-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">💳 Fons insuficients</span>
+            <span className="text-white tracking-widest">4000 0000 0000 9995</span>
+            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
+          </div>
         </div>
       </div>
+
+      {/* Formulari de pagament */}
+      <div className="bg-[#1A1A1A]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#CC8400] via-[#E65100] to-[#CC8400]"></div>
+
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-2">
+              Dades de Pagament
+            </h3>
+            <p className="text-gray-400">
+              Estàs subscrivint-te al{" "}
+              <span className="text-[#CC8400] font-semibold">
+                {selectedPlan?.title || "Pla"}
+              </span>
+            </p>
+          </div>
+          <div className="bg-white/10 px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-xs font-semibold text-white">Stripe Test Mode</span>
+          </div>
+        </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Titular */}
@@ -359,6 +409,7 @@ const PaymentFormInner = ({
         </div>
       </form>
     </div>
+  </div>
   );
 };
 

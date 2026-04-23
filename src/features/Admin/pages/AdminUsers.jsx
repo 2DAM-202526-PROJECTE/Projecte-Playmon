@@ -41,9 +41,11 @@ export default function AdminUsers() {
 
     const startEdit = (user) => {
         setEditingUser(user.id);
+        const currentPlan = (user.pla_pagament || "basic").toLowerCase().trim();
+        const mappedPlan = currentPlan === 'super' ? 'ultra' : currentPlan;
         setEditData({
             role: user.role || "user",
-            pla_pagament: user.pla_pagament || "Basic"
+            pla_pagament: mappedPlan
         });
     };
 
@@ -130,33 +132,37 @@ export default function AdminUsers() {
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-xs">
-                                     {editingUser === user.id ? (
+                                    {editingUser === user.id ? (
                                         <select 
                                             value={editData.pla_pagament} 
                                             onChange={e => setEditData({...editData, pla_pagament: e.target.value})}
                                             className="bg-[#202124] border border-white/10 rounded px-2 py-1 text-white text-xs outline-none focus:border-[#CC8400]/50"
                                         >
-                                            <option value="Basic">Basic</option>
-                                            <option value="Super">Super</option>
-                                            <option value="Master">Master</option>
+                                            <option value="basic">Basic (Gratuït)</option>
+                                            <option value="super">Super (Nivell 2)</option>
+                                            <option value="ultra">Ultra (VIP)</option>
                                         </select>
                                     ) : (
                                         <div className="flex items-center">
-                                            {(!user.pla_pagament || user.pla_pagament === 'Basic') && (
-                                                <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/40 text-[9px] font-bold uppercase tracking-wider">
-                                                    Basic
-                                                </span>
-                                            )}
-                                            {user.pla_pagament === 'Super' && (
-                                                <span className="px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[9px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-                                                    Super
-                                                </span>
-                                            )}
-                                            {user.pla_pagament === 'Master' && (
-                                                <span className="px-2 py-1 rounded-md bg-[#CC8400]/10 border border-[#CC8400]/30 text-[#CC8400] text-[9px] font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(204,132,0,0.3)] animate-pulse">
-                                                    Master
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const p = (user.pla_pagament || "basic").toLowerCase().trim();
+                                                if (p === 'basic') return (
+                                                    <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white/40 text-[9px] font-bold uppercase tracking-wider">
+                                                        Basic
+                                                    </span>
+                                                );
+                                                if (p === 'super') return (
+                                                    <span className="px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[9px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                                                        Super
+                                                    </span>
+                                                );
+                                                if (p === 'ultra') return (
+                                                    <span className="px-2 py-1 rounded-md bg-[#CC8400]/10 border border-[#CC8400]/30 text-[#CC8400] text-[9px] font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(204,132,0,0.3)] animate-pulse">
+                                                        Ultra
+                                                    </span>
+                                                );
+                                                return <span className="text-white/20">{p}</span>;
+                                            })()}
                                         </div>
                                     )}
                                 </td>

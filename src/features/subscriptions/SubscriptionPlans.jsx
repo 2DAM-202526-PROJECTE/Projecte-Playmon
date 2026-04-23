@@ -1,17 +1,17 @@
 import React from "react";
 import { FiCheck, FiX, FiLayers, FiZap, FiStar } from "react-icons/fi";
 
-const PricingCard = ({ title, price, features, recommended, icon: Icon, color, onSelect }) => {
+const PricingCard = ({ id, title, price, features, recommended, icon: Icon, color, onSelect }) => {
   return (
     <div className={`relative flex flex-col p-8 rounded-3xl border transition-all duration-500 hover:scale-105 ${
       recommended 
-        ? "bg-gradient-to-b from-[#1A1A1A] to-[#0D0D0D] border-[#CC8400] shadow-[0_0_40px_-10px_rgba(204,132,0,0.3)]" 
-        : title === 'Pla Master'
-          ? "bg-gradient-to-b from-[#1c1030] to-[#0D0D0D] border-[#7C3AED] shadow-[0_0_40px_-10px_rgba(124,58,237,0.35)] hover:border-[#A855F7]"
+        ? "bg-gradient-to-b from-[#1A1A1A] to-[#0D0D0D] border-[#3b9eff] shadow-[0_0_40px_-10px_rgba(59,158,255,0.3)]" 
+        : id === 'ultra'
+          ? "bg-gradient-to-b from-[#1c1400] to-[#0D0D0D] border-[#CC8400] shadow-[0_0_40px_-10px_rgba(204,132,0,0.35)] hover:border-[#FFD700]"
           : "bg-[#1A1A1A]/40 backdrop-blur-xl border-white/10 hover:border-white/20"
     }`}>
       {recommended && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#CC8400] to-[#E65100] text-black text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#3b9eff] to-[#1e40af] text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">
           Més popular
         </div>
       )}
@@ -33,7 +33,7 @@ const PricingCard = ({ title, price, features, recommended, icon: Icon, color, o
         {features.map((feature, idx) => (
           <div key={idx} className="flex items-start gap-3">
             {feature.included ? (
-              <FiCheck className="text-[#CC8400] mt-1 shrink-0" />
+              <FiCheck className={`mt-1 shrink-0 ${id === 'ultra' ? 'text-[#ff9d00]' : 'text-[#3b9eff]'}`} />
             ) : (
               <FiX className="text-gray-600 mt-1 shrink-0" />
             )}
@@ -45,12 +45,12 @@ const PricingCard = ({ title, price, features, recommended, icon: Icon, color, o
       </div>
 
       <button 
-        onClick={() => onSelect({ title, price })}
+        onClick={() => onSelect({ id, title, price })}
         className={`w-full py-4 rounded-xl font-bold transition-all duration-300 ${
-          title === 'Pla Master'
-            ? "bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] hover:brightness-110" 
+          id === 'ultra'
+            ? "bg-gradient-to-r from-[#CC8400] to-[#FFD700] text-black hover:shadow-[0_0_20px_rgba(204,132,0,0.5)] hover:brightness-110" 
             : recommended 
-              ? "bg-gradient-to-r from-[#CC8400] to-[#E65100] text-black hover:shadow-[0_0_20px_rgba(230,81,0,0.4)]" 
+              ? "bg-gradient-to-r from-[#3b9eff] to-[#2563eb] text-white hover:shadow-[0_0_20px_rgba(59,158,255,0.4)]" 
               : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
         }`}
       >
@@ -63,8 +63,9 @@ const PricingCard = ({ title, price, features, recommended, icon: Icon, color, o
 export const SubscriptionPlans = ({ onSelectPlan }) => {
   const plans = [
     {
+      id: "basic",
       title: "Pla Bàsic",
-      price: "1",
+      price: 0,
       icon: FiLayers,
       color: "from-gray-500 to-gray-700",
       features: [
@@ -73,33 +74,35 @@ export const SubscriptionPlans = ({ onSelectPlan }) => {
         { text: "Qualitat 1080p (Full HD)", included: true },
         { text: "Amb anuncis", included: true },
         { text: "Sense càrrega de contingut", included: false },
-        { text: "Accés a la Zona Master", included: false },
+        { text: "Accés a la Zona Ultra", included: false },
       ],
     },
     {
-      title: "Pla Ultra",
-      price: "5.99",
+      id: "super",
+      title: "Pla Super",
+      price: 5.99,
       recommended: true,
       icon: FiZap,
-      color: "from-[#CC8400] to-[#E65100]",
+      color: "from-[#3b9eff] to-[#2563eb]",
       features: [
         { text: "Tot el del pla Bàsic", included: true },
         { text: "Sense anuncis", included: true },
         { text: "Qualitat 2K (QHD)", included: true },
         { text: "Penjar el teu propi contingut", included: true },
         { text: "Suport estàndard", included: true },
-        { text: "Accés a la Zona Master", included: false },
+        { text: "Accés a la Zona Ultra", included: false },
       ],
     },
     {
-      title: "Pla Master",
-      price: "12.99",
+      id: "ultra",
+      title: "Pla Ultra",
+      price: 12.99,
       icon: FiStar,
-      color: "from-[#7C3AED] to-[#A855F7]",
+      color: "from-[#CC8400] to-[#FFD700]",
       features: [
-        { text: "Tot el del pla Ultra", included: true },
+        { text: "Tot el del pla Super", included: true },
         { text: "Qualitat 4K (Ultra HD)", included: true },
-        { text: "Accés a pàgina especial Master", included: true },
+        { text: "Accés a pàgina especial Ultra", included: true },
         { text: "Insígnia exclusiva al perfil", included: true },
         { text: "Suport prioritari 24/7", included: true },
         { text: "Beta tester de noves funcions", included: true },
@@ -111,7 +114,7 @@ export const SubscriptionPlans = ({ onSelectPlan }) => {
     <div className="py-8 w-full">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
-          Tria el teu <span className="bg-gradient-to-r from-[#CC8400] to-[#E65100] bg-clip-text text-transparent">Pla de Poder</span>
+          Tria el teu <span className="bg-gradient-to-r from-[#3b9eff] to-[#CC8400] bg-clip-text text-transparent">Pla de Poder</span>
         </h2>
         <p className="text-gray-400 text-base max-w-xl mx-auto">
           Subscriu-te per desbloquejar noves possibilitats i gaudir de Playmon sense límits.

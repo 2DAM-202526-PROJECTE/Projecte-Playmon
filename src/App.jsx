@@ -17,7 +17,9 @@ import CompteContrasenya from "@/features/compte/perfil/pages/compte/CompteContr
 import CompteConnexions from "@/features/compte/perfil/pages/compte/CompteConnexions.jsx";
 import ComptePrivadesa from "@/features/compte/perfil/pages/compte/ComptePrivadesa.jsx";
 import CompteLlista from "@/features/compte/perfil/pages/compte/CompteLlista.jsx";
+import CompteHistorial from "@/features/compte/perfil/pages/compte/CompteHistorial.jsx";
 import ComptePagaments from "@/features/compte/perfil/pages/compte/ComptePagaments.jsx";
+import CompteFavorits from "@/features/compte/perfil/pages/compte/CompteFavorits.jsx";
 import NotFound from '@/features/NotFound/NotFound.jsx';
 import Forbidden from '@/features/Forbidden/Forbidden.jsx';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -26,6 +28,7 @@ import MovieDetailPage from '@/features/detail/MovieDetailPage';
 import TvDetailPage from '@/features/detail/TvDetailPage';
 import MoviesPage from '@/features/movies/MoviesPage';
 import SeriesPage from '@/features/series/SeriesPage';
+import OriginalsPage from '@/features/originals/OriginalsPage';
 
 // Admin Pages
 import AdminStats from '@/features/Admin/pages/AdminStats.jsx';
@@ -53,6 +56,9 @@ const App = () => {
           <Route path="/series"
             element={<ProtectedRoute element={<SeriesPage />} />}
           />
+          <Route path="/originals"
+            element={<ProtectedRoute element={<OriginalsPage />} />}
+          />
 
           <Route path="/compte" element={<ProtectedRoute element={<CompteLayout />} />}>
             <Route index element={<Navigate to="inici" replace />} />
@@ -63,7 +69,9 @@ const App = () => {
             <Route path="connexions" element={<CompteConnexions />} />
             <Route path="privadesa" element={<ComptePrivadesa />} />
             <Route path="llista" element={<CompteLlista />} />
+            <Route path="historial" element={<CompteHistorial />} />
             <Route path="pagaments" element={<ComptePagaments />} />
+            <Route path="favorits" element={<CompteFavorits />} />
           </Route>
 
           <Route path="/login"
@@ -78,6 +86,7 @@ const App = () => {
           </Route>
 
           <Route path='/reproduccio/:id' element={<PantallaReproduccio />} />
+          <Route path='/watch' element={<ProtectedRoute element={<PantallaReproduccio />} />} />
 
           <Route path="/play" element={<ProtectedRoute element={<PantallaReproduccio />} />}>
             <Route path=":videoId" element={<PantallaReproduccio />} />

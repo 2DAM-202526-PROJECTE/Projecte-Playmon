@@ -1,16 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck } from 'react-icons/hi2'
+import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck, HiStar } from 'react-icons/hi2'
 import TrailerModal from '@/features/detail/components/TrailerModal.jsx'
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
 
-function MovieCard({ movie }) {
+const FAKE_VIDEOS = [
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772727103/playmon/playmon/arnau/03488cf4.mp4',
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772478821/playmon/playmon/arnau/8bb6e0cf.mp4',
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772561885/playmon/playmon/arnau/1453dd56.webm'
+];
+
+function MovieCard({ movie, isContinueWatching = false }) {
     const navigate = useNavigate()
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
     const [inList, setInList] = useState(false)
+    const [inFavorites, setInFavorites] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
@@ -22,6 +29,8 @@ function MovieCard({ movie }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
+        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setInFavorites(favorites.some(m => m.id === movie.id))
     }, [movie])
 
     const handleToggleList = (e) => {
@@ -31,10 +40,28 @@ function MovieCard({ movie }) {
         if (inList) {
             localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist.filter(m => m.id !== movie.id)))
             setInList(false)
+            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'remove', item: movie } }))
         } else {
             watchlist.push(movie)
             localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
             setInList(true)
+            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'add', item: movie } }))
+        }
+    }
+
+    const handleToggleFavorites = (e) => {
+        e.stopPropagation()
+        if (!movie) return
+        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (inFavorites) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favorites.filter(m => m.id !== movie.id)))
+            setInFavorites(false)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
+        } else {
+            favorites.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
+            setInFavorites(true)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
         }
     }
 
@@ -42,6 +69,26 @@ function MovieCard({ movie }) {
         const isTv = movie.media_type === 'tv' || (!movie.title && movie.name)
         const type = isTv ? 'tv' : 'movie'
         navigate(`/${type}/${movie.id}`)
+    }
+
+    const handlePlay = (e) => {
+        e.stopPropagation()
+        navigate('/watch', {
+            state: {
+                id: movie.id,
+                titol: movie.title || movie.name || 'Sense títol',
+                poster: movie.backdrop_path || movie.poster_path || '',
+                fonts: { 
+                    hls: null, 
+                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary'))) 
+                        ? movie.video_url 
+                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] 
+                },
+                any: (movie.release_date || movie.first_air_date || '').slice(0, 4) || null,
+                genere: movie.genres?.[0]?.name || null,
+                duracioText: null,
+            }
+        })
     }
 
     const imagePath = movie.backdrop_path || movie.poster_path
@@ -127,11 +174,11 @@ function MovieCard({ movie }) {
                 <h3 className="text-white font-bold text-sm md:text-base line-clamp-1">{movie.title || movie.name}</h3>
                 
                 <div className="flex items-center gap-2 mt-1">
-                    <button onClick={(e) => { e.stopPropagation(); handleClick(); }} 
-                            title="Reproduir"
+                    <button onClick={handlePlay} 
+                            title={isContinueWatching ? "Reprendre" : "Reproduir"}
                             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white text-black font-semibold hover:bg-[#CC8400] hover:text-white transition-colors">
                         <HiPlayCircle className="text-2xl" />
-                        <span className="text-xs md:text-sm">Reproduir</span>
+                        <span className="text-xs md:text-sm">{isContinueWatching ? "Reprendre" : "Reproduir"}</span>
                     </button>
                     {trailerKey && (
                         <button onClick={(e) => { e.stopPropagation(); setIsHovered(false); setShowTrailer(true); }}
@@ -140,10 +187,15 @@ function MovieCard({ movie }) {
                             <HiFilm className="text-lg" />
                         </button>
                     )}
-                    <button onClick={handleToggleList} title={inList ? "Eliminar de la llista" : "Afegir a llista"} 
-                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border 
+                    <button onClick={handleToggleList} title={inList ? "Eliminar de la llista" : "Afegir a veure més tard"}
+                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border
                                        ${inList ? 'bg-[#CC8400] border-[#CC8400]' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
                         {inList ? <HiCheck className="text-lg" /> : <HiPlus className="text-lg" />}
+                    </button>
+                    <button onClick={handleToggleFavorites} title={inFavorites ? "Eliminar de favorits" : "Afegir a favorits"}
+                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border
+                                       ${inFavorites ? 'bg-yellow-500/80 border-yellow-500' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
+                        <HiStar className="text-lg" />
                     </button>
                 </div>
 

@@ -11,7 +11,7 @@ function RelatedContent({ movies = [] }) {
     }
 
     const handleClick = (movie) => {
-        const type = movie.media_type === 'tv' || movie.name ? 'tv' : 'movie'
+        const type = movie.media_type === 'tv' ? 'tv' : 'movie'
         navigate(`/${type}/${movie.id}`)
         window.scrollTo(0, 0)
     }

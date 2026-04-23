@@ -148,7 +148,20 @@ const getTvSeason = (tvId, seasonNum) => axios.get(`${seriesBaseUrl}/${tvId}`).t
 });
 
 // Related movies: crida al backend local, retorna pelis del mateix gènere
-const getRelated = (movieId) => axios.get(`${movieBaseUrl}/${movieId}/relacionats`).then(mapResults);
+const getRelated = (movieId) =>
+    axios.get(`${movieBaseUrl}/${movieId}/relacionats`).then(res => {
+        const mapped = mapResults(res);
+        mapped.data.results = mapped.data.results.map(m => ({ ...m, media_type: 'movie' }));
+        return mapped;
+    });
+
+// Related series: crida al backend local, retorna sèries del mateix gènere
+const getRelatedSeries = (serieId) =>
+    axios.get(`${seriesBaseUrl}/${serieId}/relacionats`).then(res => {
+        const mapped = mapResults(res);
+        mapped.data.results = mapped.data.results.map(m => ({ ...m, media_type: 'tv' }));
+        return mapped;
+    });
 
 // Fil’trats per tipus (apunten a les taules separades del backend)
 const getMovies = () => axios.get(movieBaseUrl).then(mapResults);
@@ -200,5 +213,6 @@ export default {
     getMovies,
     getSeries,
     getRelated,
+    getRelatedSeries,
     searchGlobal
 }

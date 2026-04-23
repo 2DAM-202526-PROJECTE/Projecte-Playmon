@@ -1,21 +1,51 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { HiPlus, HiCheck } from 'react-icons/hi'
-import { HiShare, HiPlayCircle } from 'react-icons/hi2'
+import { HiShare, HiPlayCircle, HiStar } from 'react-icons/hi2'
 import TrailerModal from './TrailerModal'
+
+const FAKE_VIDEOS = [
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772727103/playmon/playmon/arnau/03488cf4.mp4',
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772478821/playmon/playmon/arnau/8bb6e0cf.mp4',
+    'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772561885/playmon/playmon/arnau/1453dd56.webm'
+];
 
 // ── ActionButtons ──────────────────────────────────────────────────────────────
 function ActionButtons({ movie }) {
+    const navigate = useNavigate()
     const [inList, setInList] = useState(false)
+    const [inFavorites, setInFavorites] = useState(false)
     const [copied, setCopied] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
 
     const trailerKey = movie?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
         || movie?.videos?.results?.find(v => v.site === 'YouTube')?.key
 
+    const handlePlay = () => {
+        navigate('/watch', {
+            state: {
+                id: movie.id,
+                titol: movie.title || movie.name || 'Sense títol',
+                poster: movie.poster_path || '',
+                fonts: { 
+                    hls: null, 
+                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary'))) 
+                        ? movie.video_url 
+                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] 
+                },
+                any: (movie.release_date || movie.first_air_date || '').slice(0, 4) || null,
+                genere: movie.genres?.[0]?.name || null,
+                duracioText: null,
+            }
+        })
+    }
+
     useEffect(() => {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
+        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setInFavorites(favorites.some(m => m.id === movie.id))
     }, [movie])
 
     const handleToggleList = () => {
@@ -24,10 +54,27 @@ function ActionButtons({ movie }) {
         if (inList) {
             localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist.filter(m => m.id !== movie.id)))
             setInList(false)
+            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'remove', item: movie } }))
         } else {
             watchlist.push(movie)
             localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
             setInList(true)
+            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'add', item: movie } }))
+        }
+    }
+
+    const handleToggleFavorites = () => {
+        if (!movie) return
+        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (inFavorites) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favorites.filter(m => m.id !== movie.id)))
+            setInFavorites(false)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
+        } else {
+            favorites.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
+            setInFavorites(true)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
         }
     }
 
@@ -62,8 +109,9 @@ function ActionButtons({ movie }) {
                                bg-white text-black font-bold text-sm md:text-base
                                hover:bg-white/90 transition-all duration-200
                                shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-                    title='Funció de reproducció pendent'
-                    onClick={() => {}}
+                    title='Reproduir'
+                    onClick={handlePlay}
+                    disabled={false}
                 >
                     <HiPlayCircle className='text-2xl flex-shrink-0' />
                     Reproduir
@@ -103,6 +151,21 @@ function ActionButtons({ movie }) {
                     <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
                                       px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
                         {inList ? 'Treure' : 'Veure més tard'}
+                    </span>
+                </button>
+
+                {/* ── Afegir a favorits ── */}
+                <button
+                    onClick={handleToggleFavorites}
+                    className={`${iconBtn} ${inFavorites ? 'bg-yellow-500/80 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.4)]' : ''}`}
+                    title={inFavorites ? 'Treure de favorits' : 'Afegir a favorits'}
+                >
+                    <div className={`transition-transform duration-300 ${inFavorites ? 'scale-100' : 'scale-90 opacity-80'}`}>
+                        <HiStar className='text-white text-xl' />
+                    </div>
+                    <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
+                                      px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
+                        {inFavorites ? 'Treure' : 'Favorits'}
                     </span>
                 </button>
 

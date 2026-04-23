@@ -70,13 +70,13 @@ export default function ModalEditarPerfil({ obert, user, onTancar, onGuardar }) 
       mostraToast({
         tipus: "exit",
         titol: "Perfil actualitzat",
-        missatge: "S’han guardat els canvis correctament.",
+        missatge: "S'han guardat els canvis correctament.",
         duracio: 3000,
       });
 
       onTancar?.();
     } catch (err) {
-      const msg = err?.message ?? "No s’ha pogut guardar. Torna-ho a provar.";
+      const msg = err?.message ?? "No s'ha pogut guardar. Torna-ho a provar.";
       setError(msg);
 
       // Toast error
@@ -96,7 +96,7 @@ export default function ModalEditarPerfil({ obert, user, onTancar, onGuardar }) 
     <div className="fixed inset-0 z-[9999]">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onTancar}
         aria-hidden="true"
       />
@@ -108,19 +108,19 @@ export default function ModalEditarPerfil({ obert, user, onTancar, onGuardar }) 
         className="relative mx-auto mt-24 w-[92%] max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="rounded-3xl bg-white p-5 shadow-xl ring-1 ring-black/10 md:p-6">
+        <div className="rounded-3xl p-5 md:p-6 border border-white/[0.08]" style={{ background: 'rgba(10,10,10,0.97)', boxShadow: '0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)' }}>
+          {/* Línia daurada superior */}
+          <div className="absolute top-0 left-6 right-6 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(204,132,0,0.5), transparent)' }} />
+
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Editar perfil</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Actualitza les dades bàsiques del teu compte.
-              </p>
+              <h2 className="text-lg font-bold text-white">Editar perfil</h2>
+              <p className="mt-1 text-sm text-white/45">Actualitza les dades bàsiques del teu compte.</p>
             </div>
-
             <button
               type="button"
               onClick={onTancar}
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              className="grid h-8 w-8 place-items-center rounded-full border border-white/10 text-white/40 hover:border-white/20 hover:text-white/70 transition-all text-sm"
             >
               ✕
             </button>
@@ -128,47 +128,43 @@ export default function ModalEditarPerfil({ obert, user, onTancar, onGuardar }) 
 
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             <div>
-              <label className="text-sm font-semibold text-slate-800">Nom</label>
+              <label className="text-xs font-bold text-[#CC8400] uppercase tracking-widest opacity-80">Nom</label>
               <input
                 value={nom}
                 onChange={(e) => setNom(e.target.value)}
-                className="mt-2 w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-black/10 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900/20"
+                className="mt-2 w-full rounded-2xl bg-white/[0.04] border border-white/[0.08] px-4 py-3 text-sm text-white outline-none focus:border-[#CC8400]/50 focus:bg-white/[0.07] transition-all placeholder-white/25"
                 placeholder="El teu nom"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-slate-800">Correu electrònic</label>
+              <label className="text-xs font-bold text-[#CC8400] uppercase tracking-widest opacity-80">Correu electrònic</label>
               <input
                 value={dadesInicials.email}
                 readOnly
-                className="mt-2 w-full cursor-not-allowed rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 ring-1 ring-black/10 outline-none"
+                className="mt-2 w-full cursor-not-allowed rounded-2xl bg-white/[0.02] border border-white/[0.05] px-4 py-3 text-sm text-white/35 outline-none"
               />
-              <p className="mt-2 text-xs text-slate-500">
-                (De moment) l’email no es pot canviar des d’aquí.
-              </p>
+              <p className="mt-1.5 text-xs text-white/30">L'email no es pot canviar des d'aquí.</p>
             </div>
 
             {error ? (
-              <div className="rounded-2xl bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-100">
-                {error}
-              </div>
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">{error}</div>
             ) : null}
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={onTancar}
-                className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900 ring-1 ring-black/10 hover:bg-slate-50"
-                disabled={guardant || !hiHaCanvis}
+                className="rounded-xl border border-white/10 px-5 py-2 text-sm font-semibold text-white/50 hover:bg-white/5 hover:text-white/70 transition-all"
+                disabled={guardant}
               >
                 Cancel·lar
               </button>
-
               <button
                 type="submit"
-                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-60"
+                className="rounded-xl px-5 py-2 text-sm font-bold text-black disabled:opacity-50 transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 100%)' }}
                 disabled={guardant || !hiHaCanvis}
               >
                 {guardant ? "Guardant..." : "Guardar canvis"}

@@ -20,12 +20,15 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
     darrerCanviContrasenya: "11 de des. 2022",
   };
 
+  const planClean = (user.plan || "").toLowerCase().trim();
+  const normalizedPlan = planClean === 'super' ? 'ultra' : planClean;
+
   const planMapping = {
     basic: { color: "text-white", glow: "0 0 4px rgba(255,255,255,0.3)" },
-    super: { color: "text-[#ff9d00]", glow: "0 0 7px #ff9d00, 0 0 14px rgba(255,157,0,0.4)" },
+    ultra: { color: "text-[#ff9d00]", glow: "0 0 7px #ff9d00, 0 0 14px rgba(255,157,0,0.4)" },
     master: { color: "text-[#ff9d00]", glow: "0 0 7px #ff9d00, 0 0 14px rgba(255,157,0,0.4)" },
   };
-  const planInfo = planMapping[user.plan.toLowerCase()] || planMapping.basic;
+  const planInfo = planMapping[normalizedPlan] || planMapping.basic;
   const nameColorClass = planInfo.color;
   const nameGlowStyle = planInfo.glow;
 
@@ -42,8 +45,9 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
         </p>
       </header>
 
-      {/* Targeta tipus Google */}
-      <section className="overflow-hidden rounded-2xl bg-[#303134] ring-1 ring-white/10">
+      {/* Targeta informació */}
+      <section className="overflow-hidden rounded-2xl relative" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(204,132,0,0.15)', boxShadow: '0 0 40px rgba(204,132,0,0.04)' }}>
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(204,132,0,0.45), transparent)' }} />
         <FilaInfo
           icona={<IconaCamera />}
           titol="Foto de perfil"
@@ -60,7 +64,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           valor={
             <>
               {user.usuari}
-              {user.plan.toLowerCase() === 'master' && (
+              {normalizedPlan === 'master' && (
                 <span className="ml-2 text-white inline-block drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]">★</span>
               )}
             </>
@@ -137,48 +141,35 @@ function FilaInfo({ icona, titol, valor, valors, avatarDreta, onClick, valorColo
     <button
       type="button"
       onClick={onClick}
-      className="
-        group flex w-full items-center justify-between gap-4
-        px-6 py-4 text-left
-        hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20
-      "
+      className="group flex w-full items-center justify-between gap-4 px-6 py-4 text-left hover:bg-white/[0.04] border-l-2 border-transparent hover:border-[#CC8400]/40 focus:outline-none transition-all duration-200"
     >
       <div className="flex items-start gap-4">
-        <div className="mt-1 text-white/70">{icona}</div>
+        <div className="mt-1 text-white/35 group-hover:text-[#CC8400]/70 transition-colors">{icona}</div>
 
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-white">{titol}</div>
+          <div className="text-sm font-semibold text-white/80 group-hover:text-white transition-colors">{titol}</div>
 
-          {/* Un sol valor */}
           {(typeof valor === "string" || React.isValidElement(valor)) && valor !== "" ? (
-            <div 
-              className={`mt-1 text-sm ${valorColorClass || "text-white/70"}`}
+            <div
+              className={`mt-1 text-sm ${valorColorClass || "text-white/45"}`}
               style={valorGlowStyle ? { textShadow: valorGlowStyle } : {}}
             >
               {valor}
             </div>
           ) : null}
 
-          {/* Llista de valors */}
           {Array.isArray(valors) && valors.length ? (
             <div className="mt-1 space-y-1">
               {valors.map((v) => (
-                <div key={v} className="text-sm text-white/70">
-                  {v}
-                </div>
+                <div key={v} className="text-sm text-white/45">{v}</div>
               ))}
             </div>
           ) : null}
         </div>
       </div>
 
-      {/* Avatar a la dreta (només 1a fila) */}
       {avatarDreta ? (
-        <img
-          src={avatarDreta}
-          alt=""
-          className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-white/15"
-        />
+        <img src={avatarDreta} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-[#CC8400]/20" />
       ) : (
         <ChevronDreta />
       )}
@@ -269,22 +260,6 @@ function IconaTelefon() {
   );
 }
 
-function IconaIdioma() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={baseIcon}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20" />
-      <path d="M12 2a15 15 0 0 1 0 20" />
-      <path d="M12 2a15 15 0 0 0 0 20" />
-    </svg>
-  );
-}
 
 function IconaCasa() {
   return (
@@ -315,20 +290,6 @@ function IconaMaleta() {
   );
 }
 
-function IconaAltres() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={baseIcon}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <rect x="4" y="8" width="14" height="14" rx="2" />
-      <path d="M8 8V6a2 2 0 0 1 2-2h10v14h-2" />
-    </svg>
-  );
-}
 
 function IconaContrasenya() {
   return (

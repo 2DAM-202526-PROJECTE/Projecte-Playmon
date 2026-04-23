@@ -50,14 +50,14 @@ export async function deleteAvatar(userId) {
     });
 }
 
-export async function updateUserSubscription(userId, plan) {
-    // Normalizing plan for server: "Pla Ultra" -> "ultra" (stored as "super" in DB)
-    const normalizedPlan = plan.toLowerCase().replace("pla ", "");
-    
+/**
+ * Update user subscription plan.
+ * @param {number} userId
+ * @param {string} planKey - "basic" | "super" | "ultra"
+ */
+export async function updateUserSubscription(userId, planKey) {
     return httpClient(`/users/${userId}`, {
         method: "PUT",
-        body: JSON.stringify({
-            pla_pagament: normalizedPlan,
-        }),
+        body: JSON.stringify({ pla_pagament: planKey }),
     });
 }
