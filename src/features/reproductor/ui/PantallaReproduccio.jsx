@@ -124,7 +124,7 @@ export default function PantallaReproduccio() {
         }}
       />
 
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-6">
+      {/* <div className="mx-auto w-full max-w-[1100px] px-5 py-6">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
           {video.any ? (
             <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">
@@ -147,7 +147,7 @@ export default function PantallaReproduccio() {
         {video.descripcio ? (
           <p className="mt-2 max-w-3xl text-sm text-white/70">{video.descripcio}</p>
         ) : null}
-      </div>
+      </div> */}
     </div>
   );
 }
