@@ -1,81 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useState } from 'react'
+import { useFavorites } from '@/context/FavoritesContext'
 import MovieCard from '@/components/MovieCard'
 
-function UndoToast({ item, onUndo, onDismiss }) {
-    const title = item?.title || item?.name || 'Element'
-    return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4
-                        bg-[#1e1e1e] border border-white/15 rounded-2xl px-5 py-3.5 shadow-2xl
-                        backdrop-blur-sm min-w-[280px] max-w-[420px]">
-            <p className="text-white/80 text-sm flex-1 truncate">
-                <span className="text-white/45 mr-1">★</span>
-                <span className="font-medium text-white/90">"{title}"</span>
-                {' '}eliminat de favorits
-            </p>
-            <div className="flex items-center gap-3 flex-shrink-0">
-                <button
-                    onClick={onUndo}
-                    className="text-[#CC8400] text-sm font-bold hover:text-[#E09400] transition-colors"
-                >
-                    Desfer
-                </button>
-                <button
-                    onClick={onDismiss}
-                    className="text-white/30 hover:text-white/60 text-lg leading-none transition-colors"
-                >
-                    ×
-                </button>
-            </div>
-        </div>
-    )
-}
+const ITEMS_PER_PAGE = 20;
 
 export default function CompteFavorits() {
-    const [movies, setMovies] = useState([])
-    const [undoItem, setUndoItem] = useState(null)
-    const timerRef = useRef(null)
+    const { favorites, loading } = useFavorites()
+    const [page, setPage] = useState(1)
 
-    const refresh = () =>
-        setMovies(JSON.parse(localStorage.getItem('playmon_favorites') || '[]'))
-
-    useEffect(() => { refresh() }, [])
-
-    useEffect(() => {
-        const handler = (e) => {
-            const { action, item } = e.detail
-            refresh()
-            if (action === 'remove') {
-                if (timerRef.current) clearTimeout(timerRef.current)
-                setUndoItem(item)
-                timerRef.current = setTimeout(() => setUndoItem(null), 5000)
-            } else {
-                setUndoItem(null)
-                if (timerRef.current) clearTimeout(timerRef.current)
-            }
-        }
-        window.addEventListener('playmon:favorites-changed', handler)
-        return () => {
-            window.removeEventListener('playmon:favorites-changed', handler)
-            if (timerRef.current) clearTimeout(timerRef.current)
-        }
-    }, [])
-
-    const handleUndo = () => {
-        if (!undoItem) return
-        if (timerRef.current) clearTimeout(timerRef.current)
-        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        favorites.push(undoItem)
-        localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
-        window.dispatchEvent(new CustomEvent('playmon:favorites-changed', {
-            detail: { action: 'add', item: undoItem }
-        }))
-        setUndoItem(null)
-    }
-
-    const handleDismiss = () => {
-        if (timerRef.current) clearTimeout(timerRef.current)
-        setUndoItem(null)
-    }
+    const totalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE)
+    const currentItems = favorites.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
     return (
         <div className="space-y-6">
@@ -87,7 +21,11 @@ export default function CompteFavorits() {
             </header>
 
             <section className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-6">
-                {movies.length === 0 ? (
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-[#CC8400] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : favorites.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
@@ -99,22 +37,41 @@ export default function CompteFavorits() {
                 ) : (
                     <>
                         <p className="text-xs text-white/35 mb-5 uppercase tracking-widest font-semibold">
-                            {movies.length} {movies.length === 1 ? 'favorit' : 'favorits'}
+                            {favorites.length} {favorites.length === 1 ? 'favorit' : 'favorits'}
                         </p>
-                        <div className="flex flex-wrap gap-4 md:gap-6">
-                            {movies.map(movie => (
-                                <div key={movie.id} className="flex-shrink-0">
+
+                        <div className="flex flex-wrap gap-4">
+                            {currentItems.map(movie => (
+                                <div key={movie.tmdb_id || movie.id} className="flex-shrink-0">
                                     <MovieCard movie={movie} />
                                 </div>
                             ))}
                         </div>
+
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-white/[0.06]">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    ← Anterior
+                                </button>
+                                <span className="text-xs font-bold text-white/35 uppercase tracking-widest">
+                                    Pàgina {page} de {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    Següent →
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </section>
-
-            {undoItem && (
-                <UndoToast item={undoItem} onUndo={handleUndo} onDismiss={handleDismiss} />
-            )}
         </div>
     )
 }

@@ -29,6 +29,7 @@ import TvDetailPage from '@/features/detail/TvDetailPage';
 import MoviesPage from '@/features/movies/MoviesPage';
 import SeriesPage from '@/features/series/SeriesPage';
 import OriginalsPage from '@/features/originals/OriginalsPage';
+import { FavoritesProvider } from '@/context/FavoritesContext';
 
 // Admin Pages
 import AdminStats from '@/features/Admin/pages/AdminStats.jsx';
@@ -39,6 +40,7 @@ import AdminNotifications from '@/features/Admin/pages/AdminNotifications.jsx';
 const App = () => {
   return (
     <Router>
+      <FavoritesProvider>
       <div className="app min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
         <Routes>
           <Route path="/"
@@ -103,6 +105,7 @@ const App = () => {
           /> */}
         </Routes>
       </div>
+      </FavoritesProvider>
     </Router>
   );
 };

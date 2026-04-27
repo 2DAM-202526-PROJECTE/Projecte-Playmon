@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck, HiStar } from 'react-icons/hi2'
 import TrailerModal from '@/features/detail/components/TrailerModal.jsx'
+import { useFavorites } from '@/context/FavoritesContext'
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
 
@@ -17,8 +18,9 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
     const [inList, setInList] = useState(false)
-    const [isFav, setIsFav] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
+    const { isFav: isFavFn, toggleFav } = useFavorites()
+    const isFav = isFavFn(movie?.id)
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
 
@@ -29,24 +31,12 @@ function MovieCard({ movie, isContinueWatching = false }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
-        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
 
     const handleToggleFav = (e) => {
         e.stopPropagation()
         if (!movie) return
-        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        if (isFav) {
-            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
-            setIsFav(false)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
-        } else {
-            favs.push(movie)
-            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
-            setIsFav(true)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
-        }
+        toggleFav(movie)
     }
 
     const handleToggleList = (e) => {
