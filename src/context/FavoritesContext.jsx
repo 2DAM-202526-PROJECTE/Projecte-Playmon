@@ -22,16 +22,16 @@ export function FavoritesProvider({ children }) {
 
     useEffect(() => { load() }, [load])
 
-    const isFav = useCallback((tmdbId) =>
-        favorites.some(f => f.tmdb_id === tmdbId || f.id === tmdbId),
-        [favorites]
-    )
+    const isFav = useCallback((tmdbId) => {
+        if (!tmdbId) return false;
+        return favorites.some(f => String(f.tmdb_id) === String(tmdbId) || String(f.id) === String(tmdbId))
+    }, [favorites])
 
     const toggleFav = useCallback(async (movie) => {
         const tmdbId = movie.id
         const mediaType = movie.media_type || 'movie'
         if (isFav(tmdbId)) {
-            setFavorites(prev => prev.filter(f => f.tmdb_id !== tmdbId && f.id !== tmdbId))
+            setFavorites(prev => prev.filter(f => String(f.tmdb_id) !== String(tmdbId) && String(f.id) !== String(tmdbId)))
             try { await favoritesApi.remove(tmdbId, mediaType) }
             catch { load() }
         } else {
