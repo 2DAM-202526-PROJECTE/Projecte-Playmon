@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { HiPlus, HiCheck } from 'react-icons/hi'
 import { HiShare, HiPlayCircle, HiStar } from 'react-icons/hi2'
 import TrailerModal from './TrailerModal'
+import { useFavorites } from '@/context/FavoritesContext'
 
 const FAKE_VIDEOS = [
     'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772727103/playmon/playmon/arnau/03488cf4.mp4',
@@ -14,8 +15,9 @@ const FAKE_VIDEOS = [
 function ActionButtons({ movie }) {
     const navigate = useNavigate()
     const [inList, setInList] = useState(false)
-    const [isFav, setIsFav] = useState(false)
     const [copied, setCopied] = useState(false)
+    const { isFav: isFavFn, toggleFav } = useFavorites()
+    const isFav = isFavFn(movie?.id)
     const [showTrailer, setShowTrailer] = useState(false)
 
     const trailerKey = movie?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
@@ -39,21 +41,11 @@ function ActionButtons({ movie }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
-        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
 
     const handleToggleFav = () => {
         if (!movie) return
-        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        if (isFav) {
-            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
-            setIsFav(false)
-        } else {
-            favs.push(movie)
-            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
-            setIsFav(true)
-        }
+        toggleFav(movie)
     }
 
     const handleToggleList = () => {

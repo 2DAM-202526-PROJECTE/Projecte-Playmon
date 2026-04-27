@@ -1,22 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useFavorites } from '@/context/FavoritesContext'
 import MovieCard from '@/components/MovieCard'
 
 const ITEMS_PER_PAGE = 8
 
 export default function CompteFavorits() {
-    const [movies, setMovies] = useState([])
-    const [currentPage, setCurrentPage] = useState(1)
+    const { favorites, loading } = useFavorites()
+    const [page, setPage] = useState(1)
 
-    useEffect(() => {
-        const stored = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        setMovies(stored)
-    }, [])
-
-    const totalPages = Math.ceil(movies.length / ITEMS_PER_PAGE)
-    const currentItems = movies.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    )
+    const totalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE)
+    const currentItems = favorites.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
     return (
         <div className="space-y-6">
@@ -28,7 +21,11 @@ export default function CompteFavorits() {
             </header>
 
             <section className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-6">
-                {movies.length === 0 ? (
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-[#CC8400] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : favorites.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 border border-white/[0.08]"
                             style={{ background: 'rgba(255,255,255,0.03)' }}>
@@ -44,12 +41,12 @@ export default function CompteFavorits() {
                 ) : (
                     <>
                         <p className="text-xs text-white/35 mb-5 uppercase tracking-widest font-semibold">
-                            {movies.length} {movies.length === 1 ? 'favorit' : 'favorits'}
+                            {favorites.length} {favorites.length === 1 ? 'favorit' : 'favorits'}
                         </p>
 
                         <div className="flex flex-wrap gap-4">
                             {currentItems.map(movie => (
-                                <div key={movie.id} className="flex-shrink-0">
+                                <div key={movie.tmdb_id || movie.id} className="flex-shrink-0">
                                     <MovieCard movie={movie} />
                                 </div>
                             ))}
@@ -58,18 +55,18 @@ export default function CompteFavorits() {
                         {totalPages > 1 && (
                             <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-white/[0.06]">
                                 <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
                                     className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
                                 >
                                     ← Anterior
                                 </button>
                                 <span className="text-xs font-bold text-white/35 uppercase tracking-widest">
-                                    Pàgina {currentPage} de {totalPages}
+                                    Pàgina {page} de {totalPages}
                                 </span>
                                 <button
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
                                     className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
                                 >
                                     Següent →
