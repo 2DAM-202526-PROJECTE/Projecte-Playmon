@@ -139,14 +139,7 @@ export default function SeriesPage() {
                 ) : (
                     <div className='px-6 md:px-12 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4'>
                         {filtered.map(serie => (
-                            <div key={serie.id} className='group/card relative'>
-                                <MovieCard movie={{ ...serie, media_type: 'tv' }} />
-                                <div className='absolute bottom-0 left-0 right-0 px-2 pb-2 pt-8
-                                                bg-gradient-to-t from-black/90 via-black/50 to-transparent rounded-b-lg
-                                                opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 pointer-events-none'>
-                                    <p className='text-white text-[11px] font-medium truncate'>{serie.title || serie.name}</p>
-                                </div>
-                            </div>
+                            <MovieCard key={serie.id} movie={{ ...serie, media_type: 'tv' }} />
                         ))}
                     </div>
                 )}

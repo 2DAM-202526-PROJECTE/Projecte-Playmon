@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck } from 'react-icons/hi2'
+import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck, HiStar } from 'react-icons/hi2'
 import TrailerModal from '@/features/detail/components/TrailerModal.jsx'
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
@@ -17,6 +17,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
     const [inList, setInList] = useState(false)
+    const [isFav, setIsFav] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
@@ -28,7 +29,23 @@ function MovieCard({ movie, isContinueWatching = false }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
+
+    const handleToggleFav = (e) => {
+        e.stopPropagation()
+        if (!movie) return
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (isFav) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
+            setIsFav(false)
+        } else {
+            favs.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
+            setIsFav(true)
+        }
+    }
 
     const handleToggleList = (e) => {
         e.stopPropagation()
@@ -161,10 +178,15 @@ function MovieCard({ movie, isContinueWatching = false }) {
                             <HiFilm className="text-lg" />
                         </button>
                     )}
-                    <button onClick={handleToggleList} title={inList ? "Eliminar de la llista" : "Afegir a llista"} 
-                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border 
+                    <button onClick={handleToggleList} title={inList ? "Eliminar de la llista" : "Afegir a llista"}
+                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border
                                        ${inList ? 'bg-[#CC8400] border-[#CC8400]' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
                         {inList ? <HiCheck className="text-lg" /> : <HiPlus className="text-lg" />}
+                    </button>
+                    <button onClick={handleToggleFav} title={isFav ? "Treure de favorits" : "Afegir a favorits"}
+                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border
+                                       ${isFav ? 'bg-[#CC8400] border-[#CC8400] text-black' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
+                        <HiStar className="text-lg" />
                     </button>
                 </div>
 
@@ -187,7 +209,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
             ref={cardRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className="relative w-[200px] md:w-[280px] aspect-video flex-shrink-0 cursor-pointer rounded-lg" 
+            className="relative w-[200px] md:w-[280px] aspect-video flex-shrink-0 cursor-pointer rounded-lg"
             onClick={handleClick}
         >
             {/* Targeta base habitual */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiPlus, HiCheck } from 'react-icons/hi'
-import { HiShare, HiPlayCircle } from 'react-icons/hi2'
+import { HiShare, HiPlayCircle, HiStar } from 'react-icons/hi2'
 import TrailerModal from './TrailerModal'
 
 const FAKE_VIDEOS = [
@@ -14,6 +14,7 @@ const FAKE_VIDEOS = [
 function ActionButtons({ movie }) {
     const navigate = useNavigate()
     const [inList, setInList] = useState(false)
+    const [isFav, setIsFav] = useState(false)
     const [copied, setCopied] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
 
@@ -38,7 +39,22 @@ function ActionButtons({ movie }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
+
+    const handleToggleFav = () => {
+        if (!movie) return
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (isFav) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
+            setIsFav(false)
+        } else {
+            favs.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
+            setIsFav(true)
+        }
+    }
 
     const handleToggleList = () => {
         if (!movie) return
@@ -61,10 +77,10 @@ function ActionButtons({ movie }) {
         } catch {}
     }
 
-    const iconBtn = `relative flex items-center justify-center w-11 h-11 rounded-full
-                     border border-white/30 bg-white/10
-                     transition-all duration-300 hover:border-[#CC8400] hover:bg-white/20
-                     hover:scale-110 active:scale-95 group`
+    const iconBtnBase = `relative flex items-center justify-center w-11 h-11 rounded-full
+                         border transition-all duration-300 hover:scale-110 active:scale-95 group`
+    const iconBtnOff = `bg-white/10 border-white/30 hover:bg-white/20 hover:border-[#CC8400]`
+    const iconBtnOn  = `bg-[#CC8400] border-[#CC8400] shadow-[0_0_20px_rgba(204,132,0,0.6)]`
 
     return (
         <>
@@ -116,21 +132,26 @@ function ActionButtons({ movie }) {
                 {/* ── Afegir a la meva llista ── */}
                 <button
                     onClick={handleToggleList}
-                    className={`${iconBtn} ${inList ? 'bg-[#CC8400] border-[#CC8400] shadow-[0_0_15px_rgba(204,132,0,0.5)]' : ''}`}
+                    className={`${iconBtnBase} ${inList ? iconBtnOn : iconBtnOff}`}
                     title={inList ? 'Treure de Veure més tard' : 'Afegir a Veure més tard'}
                 >
-                    <div className={`transition-transform duration-300 ${inList ? 'scale-100' : 'scale-90 opacity-80'}`}>
-                        {inList ? <HiCheck className='text-white text-xl' /> : <HiPlus className='text-white text-xl' />}
-                    </div>
-                    {/* Tooltip */}
-                    <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
-                                      px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                        {inList ? 'Treure' : 'Veure més tard'}
-                    </span>
+                    {inList
+                        ? <HiCheck className='text-black text-xl' />
+                        : <HiPlus className='text-white text-xl' />
+                    }
+                </button>
+
+                {/* ── Favorits ── */}
+                <button
+                    onClick={handleToggleFav}
+                    className={`${iconBtnBase} ${isFav ? iconBtnOn : iconBtnOff}`}
+                    title={isFav ? 'Treure de favorits' : 'Afegir a favorits'}
+                >
+                    <HiStar className={`text-xl ${isFav ? 'text-black' : 'text-white'}`} />
                 </button>
 
                 {/* ── Compartir ── */}
-                <button onClick={handleShare} className={iconBtn} title='Compartir'>
+                <button onClick={handleShare} className={`${iconBtnBase} ${iconBtnOff}`} title='Compartir'>
                     <HiShare className='text-white text-lg' />
                     <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
                                       px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>

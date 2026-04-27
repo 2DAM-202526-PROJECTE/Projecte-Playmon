@@ -17,6 +17,7 @@ import CompteContrasenya from "@/features/compte/perfil/pages/compte/CompteContr
 import CompteConnexions from "@/features/compte/perfil/pages/compte/CompteConnexions.jsx";
 import ComptePrivadesa from "@/features/compte/perfil/pages/compte/ComptePrivadesa.jsx";
 import CompteLlista from "@/features/compte/perfil/pages/compte/CompteLlista.jsx";
+import CompteFavorits from "@/features/compte/perfil/pages/compte/CompteFavorits.jsx";
 import CompteHistorial from "@/features/compte/perfil/pages/compte/CompteHistorial.jsx";
 import ComptePagaments from "@/features/compte/perfil/pages/compte/ComptePagaments.jsx";
 import NotFound from '@/features/NotFound/NotFound.jsx';
@@ -68,6 +69,7 @@ const App = () => {
             <Route path="connexions" element={<CompteConnexions />} />
             <Route path="privadesa" element={<ComptePrivadesa />} />
             <Route path="llista" element={<CompteLlista />} />
+            <Route path="favorits" element={<CompteFavorits />} />
             <Route path="historial" element={<CompteHistorial />} />
             <Route path="pagaments" element={<ComptePagaments />} />
           </Route>
