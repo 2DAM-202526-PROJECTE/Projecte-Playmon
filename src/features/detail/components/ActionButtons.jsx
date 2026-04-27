@@ -10,11 +10,10 @@ const FAKE_VIDEOS = [
     'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772561885/playmon/playmon/arnau/1453dd56.webm'
 ];
 
-// ── ActionButtons ──────────────────────────────────────────────────────────────
 function ActionButtons({ movie }) {
     const navigate = useNavigate()
     const [inList, setInList] = useState(false)
-    const [inFavorites, setInFavorites] = useState(false)
+    const [isFav, setIsFav] = useState(false)
     const [copied, setCopied] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
 
@@ -27,11 +26,11 @@ function ActionButtons({ movie }) {
                 id: movie.id,
                 titol: movie.title || movie.name || 'Sense títol',
                 poster: movie.poster_path || '',
-                fonts: { 
-                    hls: null, 
-                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary'))) 
-                        ? movie.video_url 
-                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] 
+                fonts: {
+                    hls: null,
+                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary')))
+                        ? movie.video_url
+                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length]
                 },
                 any: (movie.release_date || movie.first_air_date || '').slice(0, 4) || null,
                 genere: movie.genres?.[0]?.name || null,
@@ -44,9 +43,24 @@ function ActionButtons({ movie }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
-        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        setInFavorites(favorites.some(m => m.id === movie.id))
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
+
+    const handleToggleFav = () => {
+        if (!movie) return
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (isFav) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
+            setIsFav(false)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
+        } else {
+            favs.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
+            setIsFav(true)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
+        }
+    }
 
     const handleToggleList = () => {
         if (!movie) return
@@ -63,21 +77,6 @@ function ActionButtons({ movie }) {
         }
     }
 
-    const handleToggleFavorites = () => {
-        if (!movie) return
-        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        if (inFavorites) {
-            localStorage.setItem('playmon_favorites', JSON.stringify(favorites.filter(m => m.id !== movie.id)))
-            setInFavorites(false)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
-        } else {
-            favorites.push(movie)
-            localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
-            setInFavorites(true)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
-        }
-    }
-
     const handleShare = async () => {
         try {
             await navigator.clipboard.writeText(window.location.href)
@@ -86,14 +85,13 @@ function ActionButtons({ movie }) {
         } catch {}
     }
 
-    const iconBtn = `relative flex items-center justify-center w-11 h-11 rounded-full
-                     border border-white/30 bg-white/10
-                     transition-all duration-300 hover:border-[#CC8400] hover:bg-white/20
-                     hover:scale-110 active:scale-95 group`
+    const iconBtnBase = `relative flex items-center justify-center w-11 h-11 rounded-full
+                         border transition-all duration-300 hover:scale-110 active:scale-95 group`
+    const iconBtnOff = `bg-white/10 border-white/30 hover:bg-white/20 hover:border-[#CC8400]`
+    const iconBtnOn  = `bg-[#CC8400] border-[#CC8400] shadow-[0_0_20px_rgba(204,132,0,0.6)]`
 
     return (
         <>
-            {/* Modal del trailer */}
             {showTrailer && trailerKey && (
                 <TrailerModal
                     trailerKey={trailerKey}
@@ -103,7 +101,6 @@ function ActionButtons({ movie }) {
             )}
 
             <div className='flex items-center gap-3 flex-wrap'>
-                {/* ── Botó principal: REPRODUIR (no funcional de moment) ── */}
                 <button
                     className='flex items-center gap-3 px-7 py-3.5 rounded-xl
                                bg-white text-black font-bold text-sm md:text-base
@@ -111,13 +108,11 @@ function ActionButtons({ movie }) {
                                shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
                     title='Reproduir'
                     onClick={handlePlay}
-                    disabled={false}
                 >
                     <HiPlayCircle className='text-2xl flex-shrink-0' />
                     Reproduir
                 </button>
 
-                {/* ── Botó TRAILER ── */}
                 {trailerKey && (
                     <button
                         onClick={() => setShowTrailer(true)}
@@ -135,48 +130,33 @@ function ActionButtons({ movie }) {
                     </button>
                 )}
 
-                {/* ── Separador visual ── */}
                 <div className='w-px h-8 bg-white/15 mx-1' />
 
-                {/* ── Afegir a la meva llista ── */}
                 <button
                     onClick={handleToggleList}
-                    className={`${iconBtn} ${inList ? 'bg-[#CC8400] border-[#CC8400] shadow-[0_0_15px_rgba(204,132,0,0.5)]' : ''}`}
+                    className={`${iconBtnBase} ${inList ? iconBtnOn : iconBtnOff}`}
                     title={inList ? 'Treure de Veure més tard' : 'Afegir a Veure més tard'}
                 >
-                    <div className={`transition-transform duration-300 ${inList ? 'scale-100' : 'scale-90 opacity-80'}`}>
-                        {inList ? <HiCheck className='text-white text-xl' /> : <HiPlus className='text-white text-xl' />}
-                    </div>
-                    {/* Tooltip */}
-                    <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
-                                      px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                        {inList ? 'Treure' : 'Veure més tard'}
-                    </span>
+                    {inList
+                        ? <HiCheck className='text-black text-xl' />
+                        : <HiPlus className='text-white text-xl' />
+                    }
                 </button>
 
-                {/* ── Afegir a favorits ── */}
                 <button
-                    onClick={handleToggleFavorites}
-                    className={`${iconBtn} ${inFavorites ? 'bg-yellow-500/80 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.4)]' : ''}`}
-                    title={inFavorites ? 'Treure de favorits' : 'Afegir a favorits'}
+                    onClick={handleToggleFav}
+                    className={`${iconBtnBase} ${isFav ? iconBtnOn : iconBtnOff}`}
+                    title={isFav ? 'Treure de favorits' : 'Afegir a favorits'}
                 >
-                    <div className={`transition-transform duration-300 ${inFavorites ? 'scale-100' : 'scale-90 opacity-80'}`}>
-                        <HiStar className='text-white text-xl' />
-                    </div>
-                    <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
-                                      px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                        {inFavorites ? 'Treure' : 'Favorits'}
-                    </span>
+                    <HiStar className={`text-xl ${isFav ? 'text-black' : 'text-white'}`} />
                 </button>
 
-                {/* ── Compartir ── */}
-                <button onClick={handleShare} className={iconBtn} title='Compartir'>
+                <button onClick={handleShare} className={`${iconBtnBase} ${iconBtnOff}`} title='Compartir'>
                     <HiShare className='text-white text-lg' />
                     <span className='absolute -top-9 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs font-medium
                                       px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
                         Compartir
                     </span>
-                    {/* Notificació copiat */}
                     <div className={`absolute -top-11 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-[#CC8400] text-black text-xs font-bold
                                      whitespace-nowrap pointer-events-none shadow-lg transition-all duration-300
                                      ${copied ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>

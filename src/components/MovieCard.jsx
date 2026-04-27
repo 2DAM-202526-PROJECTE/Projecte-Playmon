@@ -17,7 +17,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
     const [inList, setInList] = useState(false)
-    const [inFavorites, setInFavorites] = useState(false)
+    const [isFav, setIsFav] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
@@ -29,9 +29,25 @@ function MovieCard({ movie, isContinueWatching = false }) {
         if (!movie) return
         const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
         setInList(watchlist.some(m => m.id === movie.id))
-        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        setInFavorites(favorites.some(m => m.id === movie.id))
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        setIsFav(favs.some(m => m.id === movie.id))
     }, [movie])
+
+    const handleToggleFav = (e) => {
+        e.stopPropagation()
+        if (!movie) return
+        const favs = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
+        if (isFav) {
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs.filter(m => m.id !== movie.id)))
+            setIsFav(false)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
+        } else {
+            favs.push(movie)
+            localStorage.setItem('playmon_favorites', JSON.stringify(favs))
+            setIsFav(true)
+            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
+        }
+    }
 
     const handleToggleList = (e) => {
         e.stopPropagation()
@@ -49,22 +65,6 @@ function MovieCard({ movie, isContinueWatching = false }) {
         }
     }
 
-    const handleToggleFavorites = (e) => {
-        e.stopPropagation()
-        if (!movie) return
-        const favorites = JSON.parse(localStorage.getItem('playmon_favorites') || '[]')
-        if (inFavorites) {
-            localStorage.setItem('playmon_favorites', JSON.stringify(favorites.filter(m => m.id !== movie.id)))
-            setInFavorites(false)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'remove', item: movie } }))
-        } else {
-            favorites.push(movie)
-            localStorage.setItem('playmon_favorites', JSON.stringify(favorites))
-            setInFavorites(true)
-            window.dispatchEvent(new CustomEvent('playmon:favorites-changed', { detail: { action: 'add', item: movie } }))
-        }
-    }
-
     const handleClick = () => {
         const isTv = movie.media_type === 'tv' || (!movie.title && movie.name)
         const type = isTv ? 'tv' : 'movie'
@@ -78,11 +78,11 @@ function MovieCard({ movie, isContinueWatching = false }) {
                 id: movie.id,
                 titol: movie.title || movie.name || 'Sense títol',
                 poster: movie.backdrop_path || movie.poster_path || '',
-                fonts: { 
-                    hls: null, 
-                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary'))) 
-                        ? movie.video_url 
-                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length] 
+                fonts: {
+                    hls: null,
+                    mp4: (movie.video_url && (movie.video_url.includes('.mp4') || movie.video_url.includes('.webm') || movie.video_url.includes('cloudinary')))
+                        ? movie.video_url
+                        : FAKE_VIDEOS[Math.abs(movie.id || 0) % FAKE_VIDEOS.length]
                 },
                 any: (movie.release_date || movie.first_air_date || '').slice(0, 4) || null,
                 genere: movie.genres?.[0]?.name || null,
@@ -99,7 +99,6 @@ function MovieCard({ movie, isContinueWatching = false }) {
             : null
 
     if (!imageSrc) {
-        // Placeholder quan no hi ha imatge
         const isTv = movie.media_type === 'tv' || (!movie.title && movie.name)
         return (
             <div
@@ -131,12 +130,11 @@ function MovieCard({ movie, isContinueWatching = false }) {
                 setCardRect(cardRef.current.getBoundingClientRect())
                 setIsHovered(true)
             }
-        }, 400) // Delay before popup appears
+        }, 400)
     }
 
     const handleMouseLeave = () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current)
-        // Small delay so if mouse moves to portal, we cancel the close
         timeoutRef.current = setTimeout(() => {
             setIsHovered(false)
         }, 50)
@@ -146,20 +144,19 @@ function MovieCard({ movie, isContinueWatching = false }) {
         position: 'absolute',
         top: window.scrollY + cardRect.top + cardRect.height / 2,
         left: window.scrollX + cardRect.left + cardRect.width / 2,
-        width: cardRect.width * 1.25, // Ampliem un 25% la targeta
+        width: cardRect.width * 1.25,
         transform: 'translate(-50%, -50%)',
         zIndex: 99999,
     } : {}
 
     const hoverPortal = isHovered && cardRect ? createPortal(
-        <div 
+        <div
             style={popupStyle}
             onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }}
             onMouseLeave={() => setIsHovered(false)}
-            className="bg-[#121212] rounded-xl shadow-[0_25px_60px_rgba(0,0,0,1)] 
+            className="bg-[#121212] rounded-xl shadow-[0_25px_60px_rgba(0,0,0,1)]
                        border border-white/10 flex flex-col overflow-hidden animate-popupHover"
         >
-            {/* Imatge de coberta ampliada */}
             <div className="relative w-full aspect-video cursor-pointer" onClick={handleClick}>
                 <img
                     src={imageSrc}
@@ -169,12 +166,11 @@ function MovieCard({ movie, isContinueWatching = false }) {
                 <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#121212] via-[#121212]/80 to-transparent"></div>
             </div>
 
-            {/* Contingut sota la imatge */}
             <div className="px-4 pb-4 flex flex-col gap-2.5 bg-[#121212]">
                 <h3 className="text-white font-bold text-sm md:text-base line-clamp-1">{movie.title || movie.name}</h3>
-                
+
                 <div className="flex items-center gap-2 mt-1">
-                    <button onClick={handlePlay} 
+                    <button onClick={handlePlay}
                             title={isContinueWatching ? "Reprendre" : "Reproduir"}
                             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-white text-black font-semibold hover:bg-[#CC8400] hover:text-white transition-colors">
                         <HiPlayCircle className="text-2xl" />
@@ -192,9 +188,9 @@ function MovieCard({ movie, isContinueWatching = false }) {
                                        ${inList ? 'bg-[#CC8400] border-[#CC8400]' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
                         {inList ? <HiCheck className="text-lg" /> : <HiPlus className="text-lg" />}
                     </button>
-                    <button onClick={handleToggleFavorites} title={inFavorites ? "Eliminar de favorits" : "Afegir a favorits"}
-                            className={`flex items-center justify-center p-2 rounded-full text-white transition-colors border
-                                       ${inFavorites ? 'bg-yellow-500/80 border-yellow-500' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
+                    <button onClick={handleToggleFav} title={isFav ? "Treure de favorits" : "Afegir a favorits"}
+                            className={`flex items-center justify-center p-2 rounded-full transition-colors border
+                                       ${isFav ? 'bg-[#CC8400] border-[#CC8400] text-black' : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'}`}>
                         <HiStar className="text-lg" />
                     </button>
                 </div>
@@ -214,21 +210,20 @@ function MovieCard({ movie, isContinueWatching = false }) {
     ) : null
 
     return (
-        <div 
+        <div
             ref={cardRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className="relative w-[200px] md:w-[280px] aspect-video flex-shrink-0 cursor-pointer rounded-lg" 
+            className="relative w-[200px] md:w-[280px] aspect-video flex-shrink-0 cursor-pointer rounded-lg"
             onClick={handleClick}
         >
-            {/* Targeta base habitual */}
             <img
                 src={imageSrc}
                 className={`w-full h-full border-[3px] border-transparent rounded-lg object-cover transition-opacity duration-200 ${isHovered ? 'opacity-0' : 'opacity-100'}`}
                 alt={movie.title || movie.name}
             />
             {hoverPortal}
-            
+
             {showTrailer && trailerKey && (
                 <TrailerModal
                     trailerKey={trailerKey}
