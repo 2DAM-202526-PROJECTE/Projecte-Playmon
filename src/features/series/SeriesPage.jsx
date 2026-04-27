@@ -3,7 +3,7 @@ import Header from '@/components/Header'
 import HomeFooter from '@/features/home/components/HomeFooter'
 import MovieCard from '@/components/MovieCard'
 import GlobalApi from '@/Services/GlobalApi'
-import { HiTv } from 'react-icons/hi2'
+import { HiTv, HiStar } from 'react-icons/hi2'
 
 const SERIES_GENRES = [
     { id: 18,    name: 'Drama' },
@@ -59,19 +59,33 @@ export default function SeriesPage() {
         <div className='min-h-screen' style={{ background: '#0a0a0a' }}>
             <Header />
 
-            <div className='pt-24 pb-16'>
-                {/* Capçalera */}
-                <div className='flex items-center gap-4 px-6 md:px-12 mb-6'>
-                    <HiTv className='text-[#CC8400] text-4xl flex-shrink-0' />
-                    <div>
-                        <h1 className='text-3xl font-black text-white'>Sèries</h1>
-                        <p className='text-white/40 text-sm mt-0.5'>
-                            {loading
-                                ? 'Carregant catàleg...'
-                                : `${filtered.length} sèries · ${activeGenreName}`}
+            <div className='pb-16'>
+                {/* Hero */}
+                <section className='relative px-6 md:px-12 pt-2 pb-8 overflow-hidden'>
+                    <div className='absolute top-0 left-1/4 w-[500px] h-[220px] rounded-full opacity-[0.10] blur-3xl pointer-events-none'
+                        style={{ background: 'radial-gradient(ellipse, #CC8400 0%, transparent 70%)' }} />
+
+                    <div className='relative max-w-3xl'>
+                        <div className='inline-flex items-center gap-2 px-4 py-1.5 rounded-full border mb-5'
+                            style={{ background: 'rgba(204,132,0,0.08)', borderColor: 'rgba(204,132,0,0.3)' }}>
+                            <HiTv className='text-xs' style={{ color: '#CC8400' }} />
+                            <span className='text-[11px] font-black tracking-[0.18em] uppercase' style={{ color: '#CC8400' }}>Catàleg complet</span>
+                            <HiStar className='text-xs' style={{ color: '#CC8400' }} />
+                        </div>
+
+                        <h1 className='text-4xl md:text-5xl font-black tracking-tight leading-none mb-4'>
+                            <span className='text-white'>PLAYMON</span><br />
+                            <span style={{
+                                background: 'linear-gradient(135deg, #FFB800 0%, #CC8400 40%, #E09400 70%, #FFB800 100%)',
+                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
+                            }}>SÈRIES</span>
+                        </h1>
+
+                        <p className='text-white/45 text-sm max-w-lg leading-relaxed'>
+                            {loading ? 'Carregant catàleg...' : `${filtered.length} sèries · ${activeGenreName}`}
                         </p>
                     </div>
-                </div>
+                </section>
 
                 {/* Barra de filtres */}
                 <div
