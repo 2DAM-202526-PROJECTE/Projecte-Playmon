@@ -13,7 +13,13 @@ export function FavoritesProvider({ children }) {
         try {
             const data = await favoritesApi.getAll()
             setFavorites(Array.isArray(data) ? data : [])
-        } catch {
+        } catch (err) {
+            if (err?.status === 401) {
+                localStorage.removeItem('authToken')
+                localStorage.removeItem('authUser')
+                window.location.href = '/login'
+                return
+            }
             setFavorites([])
         } finally {
             setLoading(false)
