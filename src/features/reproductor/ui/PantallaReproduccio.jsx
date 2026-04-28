@@ -1,9 +1,10 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useVideoAsset } from "../hooks/useVideoAssets";
 import Reproductor from "./Reproductor";
 import { getCurrentUser } from "@/api/authApi";
 import { useSeguirViendo } from "@/context/SeguirViendoContext";
+import { useHistorial } from "@/context/HistorialContext";
 
 export default function PantallaReproduccio() {
   const currentUser = getCurrentUser();
@@ -19,36 +20,43 @@ export default function PantallaReproduccio() {
   const video = videoDirecte ?? videoBD;
 
   const { saveProgress, removeProgress, getProgress } = useSeguirViendo();
+  const { addToHistorial } = useHistorial();
   const lastSaveRef = useRef(0);
   const isFinishedRef = useRef(false);
+  const historialSavedRef = useRef(false);
 
   const [initialTime] = useState(() => {
     const currentId = videoDirecte ? videoDirecte.id : urlId;
     return getProgress(currentId);
   });
 
-  const handleTimeUpdate = (time, duration) => {
+  const handleTimeUpdate = useCallback((time, duration) => {
     if (!video || isFinishedRef.current) return;
     const mediaType = videoDirecte?.media_type || (location.pathname.includes('/tv') ? 'tv' : 'movie');
     const currentId = videoDirecte ? videoDirecte.id : urlId;
     const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-    
+
     if (time > 0 && !isOriginal) {
-      // Només guardem a la BD cada 5 segons per no saturar el servidor, o si tirem enrere
-      if (Math.abs(time - lastSaveRef.current) >= 5) {
-        lastSaveRef.current = time;
-        const movieObj = {
-            id: currentId,
-            title: video.titol,
-            name: video.titol,
-            poster_path: video.poster,
-            backdrop_path: video.poster,
-            media_type: mediaType
-        };
-        saveProgress(movieObj, time, duration || 120);
+      const movieObj = {
+          id: currentId,
+          title: video.titol,
+          name: video.titol,
+          poster_path: video.poster,
+          backdrop_path: video.poster,
+          media_type: mediaType
+      };
+
+      if (time >= 1 && !historialSavedRef.current) {
+          historialSavedRef.current = true;
+          addToHistorial(movieObj);
+      }
+
+      if (time >= 1 && (lastSaveRef.current === 0 || Math.abs(time - lastSaveRef.current) >= 5)) {
+          lastSaveRef.current = time;
+          saveProgress(movieObj, time, duration || 120);
       }
     }
-  };
+  }, [video, videoDirecte, urlId, location.pathname, addToHistorial, saveProgress]);
 
   if (!videoDirecte && carregant) {
     return (
