@@ -24,11 +24,6 @@ const items = [
     Icon: BookmarkIcon,
   },
   {
-    to: "/compte/favorits",
-    label: "Favorits",
-    Icon: StarIcon,
-  },
-  {
     to: "/compte/historial",
     label: "Historial de visualització",
     Icon: HistoryIcon,

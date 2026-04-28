@@ -1,36 +1,32 @@
 import { useEffect, useState } from 'react'
 import MovieCard from '@/components/MovieCard'
 import { getCurrentUser } from '@/api/authApi'
+import { useSeguirViendo } from '@/context/SeguirViendoContext'
 
 const ITEMS_PER_PAGE = 8
 
 export default function CompteHistorial() {
     const currentUser = getCurrentUser()
+    const { history, loading } = useSeguirViendo()
     const [movies, setMovies] = useState([])
     const [currentPage, setCurrentPage] = useState(1)
-
+    
     useEffect(() => {
-        const key = `playmon_continue_${currentUser?.id || 'guest'}`
-        const stored = localStorage.getItem(key)
-        let history = []
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored)
-                history = Array.isArray(parsed)
-                    ? parsed
-                    : parsed?.id && parsed.id !== 'undefined' ? [parsed] : []
-            } catch {
-                history = []
-            }
-        }
-        // Filtrem originals: TMDB sempre té backdrop_path amb ruta relativa ("/...")
-        // Originals de Cloudinary tenen URL absoluta — els excloem
-        const filtered = history.filter(item => {
+        // Map history to the format expected by the UI
+        const mapped = history.map(item => ({
+            ...item,
+            savedTime: item.progress,
+            duration: item.duration || 120
+        }));
+        
+        // Excloure originals si cal (sense backdrop/poster HTTP)
+        const filtered = mapped.filter(item => {
             const path = item.backdrop_path || item.poster_path
             return !path || !path.startsWith('http')
         })
+        
         setMovies(filtered)
-    }, [])
+    }, [history])
 
     const totalPages = Math.ceil(movies.length / ITEMS_PER_PAGE)
     const currentItems = movies.slice(
@@ -78,7 +74,7 @@ export default function CompteHistorial() {
                                             <div
                                                 className="h-full"
                                                 style={{
-                                                    width: movie.completed ? '100%' : `${Math.min(100, (movie.savedTime / (movie.duration || 120)) * 100)}%`,
+                                                    width: movie.completed ? '100%' : `${Math.min(100, (movie.savedTime / (movie.duration || 1)) * 100)}%`,
                                                     background: 'linear-gradient(90deg, #FFB800, #CC8400)'
                                                 }}
                                             />

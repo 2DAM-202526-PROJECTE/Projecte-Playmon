@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useVideoAsset } from "../hooks/useVideoAssets";
 import Reproductor from "./Reproductor";
 import { getCurrentUser } from "@/api/authApi";
+import { useSeguirViendo } from "@/context/SeguirViendoContext";
 
 export default function PantallaReproduccio() {
   const currentUser = getCurrentUser();
@@ -17,51 +18,35 @@ export default function PantallaReproduccio() {
 
   const video = videoDirecte ?? videoBD;
 
+  const { saveProgress, removeProgress, getProgress } = useSeguirViendo();
+  const lastSaveRef = useRef(0);
+  const isFinishedRef = useRef(false);
+
   const [initialTime] = useState(() => {
-    const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-    const saved = localStorage.getItem(historyKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const currentId = videoDirecte ? videoDirecte.id : urlId;
-        const history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-        const item = history.find(p => String(p.id) === String(currentId));
-        if (item) return Number(item.savedTime);
-      } catch (e) {}
-    }
-    return 0;
+    const currentId = videoDirecte ? videoDirecte.id : urlId;
+    return getProgress(currentId);
   });
 
-  const handleTimeUpdate = (time) => {
-    if (!video) return;
+  const handleTimeUpdate = (time, duration) => {
+    if (!video || isFinishedRef.current) return;
     const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
     const currentId = videoDirecte ? videoDirecte.id : urlId;
     const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
     
     if (time > 0 && !isOriginal) {
-      const newItem = {
-        id: currentId,
-        title: video.titol,
-        name: video.titol,
-        backdrop_path: video.poster,
-        poster_path: video.poster,
-        media_type: mediaType,
-        savedTime: time,
-        completed: false
-      };
-
-      try {
-        const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-        const saved = localStorage.getItem(historyKey);
-        let history = [];
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-        }
-        history = history.filter(item => String(item.id) !== String(currentId));
-        history.unshift(newItem);
-        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 100)));
-      } catch (e) {}
+      // Només guardem a la BD cada 5 segons per no saturar el servidor, o si tirem enrere
+      if (Math.abs(time - lastSaveRef.current) >= 5) {
+        lastSaveRef.current = time;
+        const movieObj = {
+            id: currentId,
+            title: video.titol,
+            name: video.titol,
+            poster_path: video.poster,
+            backdrop_path: video.poster,
+            media_type: mediaType
+        };
+        saveProgress(movieObj, time, duration || 120);
+      }
     }
   };
 
@@ -101,25 +86,14 @@ export default function PantallaReproduccio() {
         onTimeUpdate={handleTimeUpdate}
         onTornar={() => navigate(-1)}
         onFinal={() => {
-            try {
-              const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-              const saved = localStorage.getItem(historyKey);
-              if (saved) {
-                const parsed = JSON.parse(saved);
-                let history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-                const currentId = videoDirecte ? videoDirecte.id : urlId;
-                const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-                
-                if (!isOriginal) {
-                    const itemIndex = history.findIndex(item => String(item.id) === String(currentId));
-                    if (itemIndex > -1) {
-                      history[itemIndex].completed = true;
-                      history[itemIndex].savedTime = 0;
-                      localStorage.setItem(historyKey, JSON.stringify(history));
-                    }
-                }
-              }
-            } catch (e) {}
+            isFinishedRef.current = true;
+            const currentId = videoDirecte ? videoDirecte.id : urlId;
+            const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
+            const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
+            
+            if (!isOriginal) {
+                removeProgress(currentId, mediaType);
+            }
             if (!keepOnEnd) navigate(-1);
         }}
       />

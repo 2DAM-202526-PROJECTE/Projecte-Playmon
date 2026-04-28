@@ -7,6 +7,7 @@ import MovieCard from '@/components/MovieCard'
 import GlobalApi from '@/Services/GlobalApi'
 import { getCurrentUser } from '@/api/authApi'
 import { HiChevronLeft, HiChevronRight, HiArrowRight } from 'react-icons/hi2'
+import { useSeguirViendo } from '@/context/SeguirViendoContext'
 
 // ── Definició de les files de categories ──────────────────────────────────────
 // subtitle: text descriptiu que veiem sota del títol (estil Netflix)
@@ -282,31 +283,18 @@ function ContentRow({ title, subtitle, badge, badgeColor, color, genreId, type, 
 
 // ── Fila de Seguir Veient ───────────────────────────────────────────────────────
 function ContinueWatchingRow() {
-    const currentUser = getCurrentUser();
+    const { history } = useSeguirViendo();
     const [savedItems, setSavedItems] = useState([]);
 
     useEffect(() => {
-        const checkStorage = () => {
-            const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-            const saved = localStorage.getItem(historyKey);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    // Suportem tant el format antic de 1 objecte sol com el format de llista
-                    let history = Array.isArray(parsed) ? parsed : (parsed?.id && parsed.id !== 'undefined' ? [parsed] : []);
-                    history = history.filter(item => !item.completed);
-                    setSavedItems(history);
-                } catch (e) {
-                    setSavedItems([]);
-                }
-            } else {
-                setSavedItems([]);
-            }
-        };
-        checkStorage();
-        window.addEventListener('focus', checkStorage);
-        return () => window.removeEventListener('focus', checkStorage);
-    }, []);
+        const mapped = history.map(item => ({
+            ...item,
+            savedTime: item.progress,
+            duration: item.duration || 120
+        }));
+        // Filter out completed ones (progress >= duration - 10s or whatever, but for now we just use the DB which deletes them)
+        setSavedItems(mapped);
+    }, [history]);
 
     if (savedItems.length === 0) return null;
 
@@ -325,7 +313,7 @@ function ContinueWatchingRow() {
                         <MovieCard movie={item} isContinueWatching={true} />
                         {item.savedTime > 0 && (
                             <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-lg overflow-hidden z-10 pointer-events-none">
-                                <div className="h-full bg-[#CC8400]" style={{ width: `${Math.min(100, (item.savedTime / 7) * 100)}%` }}></div>
+                                <div className="h-full bg-[#CC8400]" style={{ width: `${Math.min(100, (item.savedTime / (item.duration || 1)) * 100)}%` }}></div>
                             </div>
                         )}
                     </div>

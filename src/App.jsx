@@ -31,6 +31,7 @@ import SeriesPage from '@/features/series/SeriesPage';
 import OriginalsPage from '@/features/originals/OriginalsPage';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import { WatchlistProvider } from '@/context/WatchlistContext';
+import { SeguirViendoProvider } from '@/context/SeguirViendoContext';
 
 // Admin Pages
 import AdminStats from '@/features/Admin/pages/AdminStats.jsx';
@@ -43,6 +44,7 @@ const App = () => {
     <Router>
       <FavoritesProvider>
       <WatchlistProvider>
+      <SeguirViendoProvider>
       <div className="app min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
         <Routes>
           <Route path="/"
@@ -107,6 +109,7 @@ const App = () => {
           /> */}
         </Routes>
       </div>
+      </SeguirViendoProvider>
       </WatchlistProvider>
       </FavoritesProvider>
     </Router>
