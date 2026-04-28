@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiPlus, HiCheck } from 'react-icons/hi'
 import { HiShare, HiPlayCircle, HiStar } from 'react-icons/hi2'
 import TrailerModal from './TrailerModal'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useWatchlist } from '@/context/WatchlistContext'
 
 const FAKE_VIDEOS = [
     'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772727103/playmon/playmon/arnau/03488cf4.mp4',
@@ -13,10 +14,11 @@ const FAKE_VIDEOS = [
 
 function ActionButtons({ movie }) {
     const navigate = useNavigate()
-    const [inList, setInList] = useState(false)
     const [copied, setCopied] = useState(false)
     const { isFav: isFavFn, toggleFav } = useFavorites()
+    const { isInList, toggleWatchlist } = useWatchlist()
     const isFav = isFavFn(movie?.id)
+    const inList = isInList(movie?.id)
     const [showTrailer, setShowTrailer] = useState(false)
 
     const trailerKey = movie?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
@@ -41,12 +43,6 @@ function ActionButtons({ movie }) {
         })
     }
 
-    useEffect(() => {
-        if (!movie) return
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        setInList(watchlist.some(m => m.id === movie.id))
-    }, [movie])
-
     const handleToggleFav = () => {
         if (!movie) return
         toggleFav(movie)
@@ -54,17 +50,7 @@ function ActionButtons({ movie }) {
 
     const handleToggleList = () => {
         if (!movie) return
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        if (inList) {
-            localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist.filter(m => m.id !== movie.id)))
-            setInList(false)
-            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'remove', item: movie } }))
-        } else {
-            watchlist.push(movie)
-            localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
-            setInList(true)
-            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'add', item: movie } }))
-        }
+        toggleWatchlist(movie)
     }
 
     const handleShare = async () => {

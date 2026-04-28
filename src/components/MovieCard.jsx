@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { HiFilm, HiTv, HiPlayCircle, HiPlus, HiCheck, HiStar } from 'react-icons/hi2'
 import TrailerModal from '@/features/detail/components/TrailerModal.jsx'
 import { useFavorites } from '@/context/FavoritesContext'
+import { useWatchlist } from '@/context/WatchlistContext'
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/original"
 
@@ -17,21 +18,16 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const navigate = useNavigate()
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
-    const [inList, setInList] = useState(false)
     const [showTrailer, setShowTrailer] = useState(false)
     const { isFav: isFavFn, toggleFav } = useFavorites()
+    const { isInList, toggleWatchlist } = useWatchlist()
     const isFav = isFavFn(movie?.id)
+    const inList = isInList(movie?.id)
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
 
     const trailerKey = movie?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
         || movie?.videos?.results?.find(v => v.site === 'YouTube')?.key
-
-    useEffect(() => {
-        if (!movie) return
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        setInList(watchlist.some(m => m.id === movie.id))
-    }, [movie])
 
     const handleToggleFav = (e) => {
         e.stopPropagation()
@@ -42,17 +38,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const handleToggleList = (e) => {
         e.stopPropagation()
         if (!movie) return
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        if (inList) {
-            localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist.filter(m => m.id !== movie.id)))
-            setInList(false)
-            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'remove', item: movie } }))
-        } else {
-            watchlist.push(movie)
-            localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
-            setInList(true)
-            window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', { detail: { action: 'add', item: movie } }))
-        }
+        toggleWatchlist(movie)
     }
 
     const handleClick = () => {
