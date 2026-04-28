@@ -29,7 +29,7 @@ export default function PantallaReproduccio() {
 
   const handleTimeUpdate = (time, duration) => {
     if (!video || isFinishedRef.current) return;
-    const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
+    const mediaType = videoDirecte?.media_type || (location.pathname.includes('/tv') ? 'tv' : 'movie');
     const currentId = videoDirecte ? videoDirecte.id : urlId;
     const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
     
@@ -89,12 +89,14 @@ export default function PantallaReproduccio() {
             isFinishedRef.current = true;
             const currentId = videoDirecte ? videoDirecte.id : urlId;
             const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-            const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
-            
+            const mediaType = videoDirecte?.media_type || (location.pathname.includes('/tv') ? 'tv' : 'movie');
+
             if (!isOriginal) {
                 removeProgress(currentId, mediaType);
+                navigate(`/${mediaType}/${currentId}`, { replace: true });
+            } else if (!keepOnEnd) {
+                navigate(-1);
             }
-            if (!keepOnEnd) navigate(-1);
         }}
       />
 

@@ -38,9 +38,8 @@ export default function SearchOverlay({ isOpen, onClose }) {
                         setResults(res.data.results || []);
                         setLoading(false);
                     })
-                    .catch(err => {
-                        console.error("Error de connexió al servidor:", err);
-                        setError('No es pot connectar al servidor principal.');
+                    .catch(() => {
+setError('No es pot connectar al servidor principal.');
                         setResults([]);
                         setLoading(false);
                     });

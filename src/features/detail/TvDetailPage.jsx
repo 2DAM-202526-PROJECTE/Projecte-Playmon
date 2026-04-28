@@ -22,7 +22,7 @@ function TvDetailPage() {
         setLoading(true)
         GlobalApi.getTvDetails(id)
             .then(resp => setData(resp.data))
-            .catch(err => console.error(err))
+            .catch(() => {})
             .finally(() => setLoading(false))
 
         GlobalApi.getRelatedSeries(id)
@@ -119,7 +119,7 @@ function TvDetailPage() {
                     <div className='flex-1 min-w-0'>
                         {/* Acció buttons */}
                         <div className='mb-6'>
-                            <ActionButtons movie={data} />
+                            <ActionButtons movie={data} mediaType="tv" />
                         </div>
 
                         {/* Metadades */}

@@ -71,7 +71,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           }
           valorColorClass={nameColorClass}
           valorGlowStyle={nameGlowStyle}
-          onClick={() => console.log("Editar nom d'usuari")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -80,7 +80,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaUsuari />}
           titol="Nom"
           valor={user.nom}
-          onClick={() => console.log("Editar nom")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -89,7 +89,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaCorreu />}
           titol="Adreça electrònica"
           valors={user.emails}
-          onClick={() => console.log("Gestionar emails")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -98,7 +98,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaTelefon />}
           titol="Telèfon"
           valor={user.telefon}
-          onClick={() => console.log("Editar telèfon")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -107,7 +107,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaCasa />}
           titol="Adreça de casa"
           valor={user.adrecaCasa}
-          onClick={() => console.log("Editar adreça casa")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -116,7 +116,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaMaleta />}
           titol="Adreça de treball"
           valor={user.adrecaTreball}
-          onClick={() => console.log("Editar adreça treball")}
+          onClick={() => {}}
         />
 
         <Separador />
@@ -125,7 +125,7 @@ export default function CompteInformacioPersonal({onChangePhoto}) {
           icona={<IconaContrasenya />}
           titol="Contrasenya"
           valor={`Darrer canvi: ${user.darrerCanviContrasenya}`}
-          onClick={() => console.log("Canviar contrasenya")}
+          onClick={() => {}}
         />
       </section>
     </div>

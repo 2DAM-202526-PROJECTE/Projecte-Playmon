@@ -12,7 +12,7 @@ const FAKE_VIDEOS = [
     'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772561885/playmon/playmon/arnau/1453dd56.webm'
 ];
 
-function ActionButtons({ movie }) {
+function ActionButtons({ movie, mediaType = 'movie' }) {
     const navigate = useNavigate()
     const [copied, setCopied] = useState(false)
     const { isFav: isFavFn, toggleFav } = useFavorites()
@@ -28,6 +28,7 @@ function ActionButtons({ movie }) {
         navigate('/watch', {
             state: {
                 id: movie.id,
+                media_type: mediaType,
                 titol: movie.title || movie.name || 'Sense títol',
                 poster: movie.poster_path || '',
                 fonts: {

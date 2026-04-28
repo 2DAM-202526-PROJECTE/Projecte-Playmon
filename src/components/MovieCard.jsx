@@ -26,6 +26,8 @@ function MovieCard({ movie, isContinueWatching = false }) {
     const timeoutRef = useRef(null)
     const cardRef = useRef(null)
 
+    const isTv = movie?.media_type === 'tv' || (!movie?.title && !!movie?.name)
+
     const trailerKey = movie?.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key
         || movie?.videos?.results?.find(v => v.site === 'YouTube')?.key
 
@@ -42,9 +44,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
     }
 
     const handleClick = () => {
-        const isTv = movie.media_type === 'tv' || (!movie.title && movie.name)
-        const type = isTv ? 'tv' : 'movie'
-        navigate(`/${type}/${movie.id}`)
+        navigate(`/${isTv ? 'tv' : 'movie'}/${movie.id}`)
     }
 
     const handlePlay = (e) => {
@@ -52,6 +52,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
         navigate('/watch', {
             state: {
                 id: movie.id,
+                media_type: isTv ? 'tv' : 'movie',
                 titol: movie.title || movie.name || 'Sense títol',
                 poster: movie.backdrop_path || movie.poster_path || '',
                 fonts: {
@@ -75,7 +76,6 @@ function MovieCard({ movie, isContinueWatching = false }) {
             : null
 
     if (!imageSrc) {
-        const isTv = movie.media_type === 'tv' || (!movie.title && movie.name)
         return (
             <div
                 onClick={handleClick}
