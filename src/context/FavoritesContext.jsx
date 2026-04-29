@@ -49,7 +49,7 @@ export function FavoritesProvider({ children }) {
     }, [isFav, load])
 
     return (
-        <FavoritesContext.Provider value={{ favorites, loading, isFav, toggleFav }}>
+        <FavoritesContext.Provider value={{ favorites, loading, isFav, toggleFav, refresh: load }}>
             {children}
         </FavoritesContext.Provider>
     )

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import MovieCard from '@/components/MovieCard'
 import { useHistorial } from '@/context/HistorialContext'
 
@@ -24,8 +24,10 @@ const BUCKET_ORDER = ['Avui', 'Ahir', 'Aquesta setmana', 'Aquest mes', 'Anterior
 const INITIAL_VISIBLE = 5
 
 export default function CompteHistorial() {
-    const { historial, loading } = useHistorial()
+    const { historial, loading, refresh } = useHistorial()
     const [filtre, setFiltre] = useState('all')
+
+    useEffect(() => { refresh() }, [])
     const [expandedBuckets, setExpandedBuckets] = useState({})
 
     const filtered = useMemo(() =>

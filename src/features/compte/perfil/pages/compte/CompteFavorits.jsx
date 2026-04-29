@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useFavorites } from '@/context/FavoritesContext'
 import MovieCard from '@/components/MovieCard'
 
 const ITEMS_PER_PAGE = 20;
 
 export default function CompteFavorits() {
-    const { favorites, loading } = useFavorites()
+    const { favorites, loading, refresh } = useFavorites()
     const [page, setPage] = useState(1)
+
+    useEffect(() => { refresh() }, [])
 
     const totalPages = Math.ceil(favorites.length / ITEMS_PER_PAGE)
     const currentItems = favorites.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)

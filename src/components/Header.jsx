@@ -8,7 +8,7 @@ import {
     HiStar,
     HiTv,
 } from "react-icons/hi2";
-import { HiPlus, HiDotsVertical } from "react-icons/hi"
+import { HiDotsVertical } from "react-icons/hi"
 import HeaderItem from './HeaderItem'
 import SearchOverlay from '@/features/search/SearchOverlay'
 import ProfileDropdown from './ProfileDropdown';
@@ -48,7 +48,7 @@ function Header() {
     ]
 
     const checkActive = (item) => {
-        if (isSearchOpen && item.action) return true
+        if (isSearchOpen) return !!item.action
         if (!item.path) return false
         if (item.path === '/') return location.pathname === '/'
         return location.pathname.startsWith(item.path)
@@ -56,7 +56,7 @@ function Header() {
 
     return (
         <div className={`h-[80px] w-full z-50 flex items-center justify-between px-6 transition-all duration-500
-            ${isDetailPage
+            ${isDetailPage && !isSearchOpen
                 ? 'absolute top-0 bg-gradient-to-b from-black/90 via-black/40 to-transparent'
                 : 'sticky top-0 bg-[#050505]/95 backdrop-blur-md border-b border-white/5 shadow-[0_10px_40px_rgba(0,0,0,0.6)]'
             }`}

@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useWatchlist } from '@/context/WatchlistContext'
 import MovieCard from '@/components/MovieCard'
 
 const ITEMS_PER_PAGE = 20;
 
 export default function CompteLlista() {
-    const { watchlist, loading } = useWatchlist()
+    const { watchlist, loading, refresh } = useWatchlist()
     const [page, setPage] = useState(1)
+
+    useEffect(() => { refresh() }, [])
 
     const totalPages = Math.ceil(watchlist.length / ITEMS_PER_PAGE)
     const currentItems = watchlist.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)

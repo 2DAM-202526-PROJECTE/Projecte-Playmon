@@ -14,7 +14,7 @@ const FAKE_VIDEOS = [
     'https://res.cloudinary.com/dm5tr3lwj/video/upload/v1772561885/playmon/playmon/arnau/1453dd56.webm'
 ];
 
-function MovieCard({ movie, isContinueWatching = false }) {
+function MovieCard({ movie, isContinueWatching = false, noPopup = false }) {
     const navigate = useNavigate()
     const [isHovered, setIsHovered] = useState(false)
     const [cardRect, setCardRect] = useState(null)
@@ -101,6 +101,7 @@ function MovieCard({ movie, isContinueWatching = false }) {
     }, [])
 
     const handleMouseEnter = () => {
+        if (noPopup) return;
         timeoutRef.current = setTimeout(() => {
             if (cardRef.current) {
                 setCardRect(cardRef.current.getBoundingClientRect())

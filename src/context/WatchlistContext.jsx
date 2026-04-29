@@ -49,7 +49,7 @@ export function WatchlistProvider({ children }) {
     }, [isInList, load])
 
     return (
-        <WatchlistContext.Provider value={{ watchlist, loading, isInList, toggleWatchlist }}>
+        <WatchlistContext.Provider value={{ watchlist, loading, isInList, toggleWatchlist, refresh: load }}>
             {children}
         </WatchlistContext.Provider>
     )

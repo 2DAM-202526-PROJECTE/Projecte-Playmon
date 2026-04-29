@@ -53,7 +53,7 @@ export function HistorialProvider({ children }) {
     }, [load])
 
     return (
-        <HistorialContext.Provider value={{ historial, loading, addToHistorial, removeFromHistorial }}>
+        <HistorialContext.Provider value={{ historial, loading, addToHistorial, removeFromHistorial, refresh: load }}>
             {children}
         </HistorialContext.Provider>
     )
