@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare } from 'react-icons/hi2'
+import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare, HiBookmark } from 'react-icons/hi2'
 import { useNavigate } from 'react-router-dom'
 import { getCurrentUser } from '@/api/authApi'
+import { useLlistaOriginals } from '@/context/LlistaOriginalsContext'
 
 function formatDate(isoString) {
     const d = new Date(isoString)
@@ -15,6 +16,8 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
 
     const currentUser = getCurrentUser()
     const navigate = useNavigate()
+    const { isInLlista, toggleLlista } = useLlistaOriginals()
+    const inLlista = isInLlista(video.id)
     const likes = video.likes ?? []
     const views = video.views ?? 0
     const isLiked = currentUser ? likes.includes(String(currentUser.id)) : false
@@ -165,6 +168,19 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
                     >
                         <HiHeart className={`text-sm transition-all duration-200 ${isLiked ? 'fill-current' : ''}`} />
                         <span className="text-[10px] font-semibold">{likes.length}</span>
+                    </button>
+
+                    {/* Bookmark button */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleLlista(video) }}
+                        title={inLlista ? 'Treure de la llista' : 'Afegir a la llista'}
+                        className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 flex-shrink-0
+                            ${inLlista
+                                ? 'text-[#CC8400] bg-[#CC8400]/10'
+                                : 'text-white/40 hover:text-[#CC8400] hover:bg-[#CC8400]/8'
+                            }`}
+                    >
+                        <HiBookmark className={`text-sm ${inLlista ? 'fill-current' : ''}`} />
                     </button>
 
                     {/* Share button */}
