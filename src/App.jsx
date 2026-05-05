@@ -36,6 +36,8 @@ import { HistorialProvider } from '@/context/HistorialContext';
 import { LlistaOriginalsProvider } from '@/context/LlistaOriginalsContext';
 import { PlaymonHistorialProvider } from '@/context/PlaymonHistorialContext';
 import { PlaymonSeguirViendoProvider } from '@/context/PlaymonSeguirViendoContext';
+import { LikePlaymonOriginalsProvider } from '@/context/LikePlaymonOriginalsContext';
+import { VisitesOriginalsProvider } from '@/context/VisitesOriginalsContext';
 
 // Admin Pages
 import AdminStats from '@/features/Admin/pages/AdminStats.jsx';
@@ -53,6 +55,8 @@ const App = () => {
       <LlistaOriginalsProvider>
       <PlaymonHistorialProvider>
       <PlaymonSeguirViendoProvider>
+      <LikePlaymonOriginalsProvider>
+      <VisitesOriginalsProvider>
       <div className="app min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
         <Routes>
           <Route path="/"
@@ -117,6 +121,8 @@ const App = () => {
           /> */}
         </Routes>
       </div>
+      </VisitesOriginalsProvider>
+      </LikePlaymonOriginalsProvider>
       </PlaymonSeguirViendoProvider>
       </PlaymonHistorialProvider>
       </LlistaOriginalsProvider>

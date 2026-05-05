@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react'
 import { HiXMark, HiUser, HiHeart, HiEye, HiFilm, HiVideoCamera } from 'react-icons/hi2'
-
-const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w300'
+import { useLikePlaymonOriginals } from '@/context/LikePlaymonOriginalsContext'
+import { useVisitesOriginals } from '@/context/VisitesOriginalsContext'
 
 function CreatorVideoCard({ video }) {
-    const likes = video.likes?.length ?? 0
-    const views = video.views ?? 0
+    const { getLikeCount } = useLikePlaymonOriginals()
+    const { getViewCount } = useVisitesOriginals()
 
     return (
         <div className="group bg-[#1A1A1A] border border-white/8 rounded-xl overflow-hidden
@@ -21,7 +21,6 @@ function CreatorVideoCard({ video }) {
                         <HiFilm className="text-[#CC8400]/25 text-3xl" />
                     </div>
                 )}
-                {/* Play overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300
                                 flex items-center justify-center">
                     <div className="w-10 h-10 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm flex items-center justify-center">
@@ -44,10 +43,10 @@ function CreatorVideoCard({ video }) {
                 </p>
                 <div className="flex items-center gap-3 text-white/35 text-[10px]">
                     <span className="flex items-center gap-1">
-                        <HiHeart className="text-xs" /> {likes}
+                        <HiHeart className="text-xs" /> {getLikeCount(video.id)}
                     </span>
                     <span className="flex items-center gap-1">
-                        <HiEye className="text-xs" /> {views}
+                        <HiEye className="text-xs" /> {getViewCount(video.id)}
                     </span>
                 </div>
             </div>
@@ -56,9 +55,12 @@ function CreatorVideoCard({ video }) {
 }
 
 export default function CreatorModal({ creator, allVideos, onClose }) {
+    const { getLikeCount } = useLikePlaymonOriginals()
+    const { getViewCount } = useVisitesOriginals()
+
     const creatorVideos = allVideos.filter(v => v.userId === creator.userId)
-    const totalLikes = creatorVideos.reduce((sum, v) => sum + (v.likes?.length ?? 0), 0)
-    const totalViews = creatorVideos.reduce((sum, v) => sum + (v.views ?? 0), 0)
+    const totalLikes = creatorVideos.reduce((sum, v) => sum + getLikeCount(v.id), 0)
+    const totalViews = creatorVideos.reduce((sum, v) => sum + getViewCount(v.id), 0)
 
     useEffect(() => {
         const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -69,10 +71,8 @@ export default function CreatorModal({ creator, allVideos, onClose }) {
     return (
         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}>
-            {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
-            {/* Modal */}
             <div className="relative z-10 w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl
                             max-h-[85vh] flex flex-col overflow-hidden">
 
@@ -84,7 +84,6 @@ export default function CreatorModal({ creator, allVideos, onClose }) {
                         <HiXMark className="text-white/70 text-lg" />
                     </button>
 
-                    {/* Creator info */}
                     <div className="flex items-center gap-4">
                         {creator.userAvatar ? (
                             <img src={creator.userAvatar} alt={creator.username}
@@ -97,7 +96,6 @@ export default function CreatorModal({ creator, allVideos, onClose }) {
                         <div>
                             <h2 className="text-white font-bold text-xl">{creator.username}</h2>
                             <p className="text-white/40 text-sm mt-0.5">Creador de Playmon Originals</p>
-                            {/* Stats */}
                             <div className="flex items-center gap-4 mt-2">
                                 <span className="flex items-center gap-1.5 text-white/50 text-xs">
                                     <HiVideoCamera className="text-sm" />
