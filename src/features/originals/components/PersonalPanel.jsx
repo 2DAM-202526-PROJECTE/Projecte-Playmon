@@ -5,6 +5,7 @@ import {
 } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
 import { useLlistaOriginals } from '@/context/LlistaOriginalsContext'
+import { usePlaymonHistorial } from '@/context/PlaymonHistorialContext'
 import { useNavigate } from 'react-router-dom'
 
 // ─── Tab button ───────────────────────────────────────────────────────────────
@@ -92,16 +93,53 @@ function MyVideosList({ videos, onEdit, onDelete }) {
 }
 
 function HistoryList() {
-    return (
+    const { historial, loading } = usePlaymonHistorial()
+    const navigate = useNavigate()
+
+    if (loading) return (
+        <div className="flex justify-center py-10">
+            <div className="w-5 h-5 border-2 border-white/15 border-t-[#CC8400] rounded-full animate-spin" />
+        </div>
+    )
+
+    if (historial.length === 0) return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-2">
             <HiClock className="text-white/15 text-4xl mb-3" />
             <p className="text-white/50 text-sm font-medium mb-1">Encara no hi ha res a l'historial</p>
             <p className="text-white/30 text-xs max-w-[200px]">Els vídeos d'Originals que vegis apareixeran aquí.</p>
         </div>
     )
+
+    return (
+        <div className="flex flex-col gap-2">
+            {historial.map(item => (
+                <div key={item.video_id}
+                    className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/play/${item.video_id}`, {
+                        state: { isOriginal: true, keepOnEnd: true }
+                    })}>
+                    <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
+                        {item.thumbnail_url
+                            ? <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center"
+                                style={{ background: 'linear-gradient(135deg,#1a0f00,#0d0d0d)' }}>
+                                <HiFilm className="text-[#CC8400]/30 text-lg" />
+                            </div>
+                        }
+                    </div>
+                    <div className="flex-1 min-w-0 self-center">
+                        <p className="text-white/85 text-xs font-medium truncate">{item.title}</p>
+                        <p className="text-white/30 text-[10px]">
+                            {item.updated_at ? new Date(item.updated_at).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' }) : ''}
+                        </p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
 }
 
-function WatchlistPanel({ allVideos }) {
+function WatchlistPanel() {
     const { llista, loading, toggleLlista } = useLlistaOriginals()
     const navigate = useNavigate()
 
@@ -125,16 +163,8 @@ function WatchlistPanel({ allVideos }) {
                 <div key={item.video_id}
                     className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer"
                     onClick={() => {
-                        const originalVideo = allVideos.find(v => String(v.id) === String(item.video_id));
                         navigate(`/play/${item.video_id}`, {
-                            state: { 
-                                id: item.video_id, 
-                                titol: item.title, 
-                                poster: item.thumbnail_url, 
-                                fonts: { hls: null, mp4: originalVideo ? originalVideo.videoUrl : null }, 
-                                keepOnEnd: true, 
-                                isOriginal: true 
-                            }
+                            state: { isOriginal: true, keepOnEnd: true }
                         });
                     }}>
                     <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
@@ -230,7 +260,7 @@ export default function PersonalPanel({ isOpen, onClose, onEditVideo, onDeleteVi
                         <MyVideosList videos={myVideos} onEdit={onEditVideo} onDelete={onDeleteVideo} />
                     )}
                     {activeTab === 'history' && <HistoryList />}
-                    {activeTab === 'watchlist' && <WatchlistPanel allVideos={allVideos} />}
+                    {activeTab === 'watchlist' && <WatchlistPanel />}
                 </div>
             </div>
         </>
