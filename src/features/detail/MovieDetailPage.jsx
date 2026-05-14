@@ -32,7 +32,7 @@ function MovieDetailPage() {
 
         fetchData
             .then(resp => setData(resp.data))
-            .catch(err => console.error(err))
+            .catch(() => {})
             .finally(() => setLoading(false))
 
         // Si és peli (no sèrie), obtenim relacionats del backend local

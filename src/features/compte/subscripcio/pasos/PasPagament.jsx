@@ -59,7 +59,6 @@ function PasPagamentInner({ data, onUpdate, onBack, onNext }) {
       setErrorStatus(error.message);
       setIsProcessing(false);
     } else {
-      console.log("[Stripe] Validated Card from Step:", paymentMethod.id);
       // Simulem èxit de pagament
       setTimeout(() => {
         setIsProcessing(false);

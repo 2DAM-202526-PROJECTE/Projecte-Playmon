@@ -23,17 +23,11 @@ export default function CompteInici() {
   const [modalEditarObert, setModalEditarObert] = useState(false);
   const [modalAvatarObert, setModalAvatarObert] = useState(false);
 
-  useEffect(() => {
-    console.log("modalEditarObert (canvi):", modalEditarObert);
-  }, [modalEditarObert]);
-
   const obrirModalEditar = () => {
-    console.log("Editar perfil");
     setModalEditarObert(true);
   };
 
   const obrirModalAvatar = () => {
-    console.log("OBRIR MODAL AVATAR");
     setModalAvatarObert(true);
   };
 

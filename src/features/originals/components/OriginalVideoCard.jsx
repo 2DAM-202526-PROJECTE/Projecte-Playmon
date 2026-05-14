@@ -1,29 +1,34 @@
 import React, { useState } from 'react'
-import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare } from 'react-icons/hi2'
+import { HiPlay, HiPencil, HiTrash, HiFilm, HiUser, HiHeart, HiEye, HiShare, HiBookmark } from 'react-icons/hi2'
 import { useNavigate } from 'react-router-dom'
-import { getCurrentUser } from '@/api/authApi'
+import { useLlistaOriginals } from '@/context/LlistaOriginalsContext'
+import { useLikePlaymonOriginals } from '@/context/LikePlaymonOriginalsContext'
+import { useVisitesOriginals } from '@/context/VisitesOriginalsContext'
 
 function formatDate(isoString) {
     const d = new Date(isoString)
     return d.toLocaleDateString('ca-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLike, onView, onOpenCreator }) {
+export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onView, onOpenCreator }) {
     const [confirmDelete, setConfirmDelete] = useState(false)
     const [likeAnim, setLikeAnim] = useState(false)
     const [copied, setCopied] = useState(false)
 
-    const currentUser = getCurrentUser()
     const navigate = useNavigate()
-    const likes = video.likes ?? []
-    const views = video.views ?? 0
-    const isLiked = currentUser ? likes.includes(String(currentUser.id)) : false
+    const { isInLlista, toggleLlista } = useLlistaOriginals()
+    const { isLiked: checkIsLiked, getLikeCount, toggleLike } = useLikePlaymonOriginals()
+    const { getViewCount } = useVisitesOriginals()
+    const inLlista = isInLlista(video.id)
+    const isLiked = checkIsLiked(video.id)
+    const likeCount = getLikeCount(video.id)
+    const views = getViewCount(video.id)
 
     const handleLike = (e) => {
         e.stopPropagation()
         setLikeAnim(true)
         setTimeout(() => setLikeAnim(false), 300)
-        onLike?.(video.id)
+        toggleLike(video.id)
     }
 
     const handlePlayClick = (e) => {
@@ -164,7 +169,20 @@ export default function OriginalVideoCard({ video, isOwn, onEdit, onDelete, onLi
                             }`}
                     >
                         <HiHeart className={`text-sm transition-all duration-200 ${isLiked ? 'fill-current' : ''}`} />
-                        <span className="text-[10px] font-semibold">{likes.length}</span>
+                        <span className="text-[10px] font-semibold">{likeCount}</span>
+                    </button>
+
+                    {/* Bookmark button */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleLlista(video) }}
+                        title={inLlista ? 'Treure de la llista' : 'Afegir a la llista'}
+                        className={`flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 flex-shrink-0
+                            ${inLlista
+                                ? 'text-[#CC8400] bg-[#CC8400]/10'
+                                : 'text-white/40 hover:text-[#CC8400] hover:bg-[#CC8400]/8'
+                            }`}
+                    >
+                        <HiBookmark className={`text-sm ${inLlista ? 'fill-current' : ''}`} />
                     </button>
 
                     {/* Share button */}

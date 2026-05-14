@@ -117,7 +117,6 @@ export async function fetchCurrentUserData() {
         }
         return data;
     } catch (e) {
-        console.error("Error fetching user data:", e);
         throw e;
     }
 }

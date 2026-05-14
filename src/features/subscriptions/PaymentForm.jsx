@@ -179,7 +179,6 @@ const PaymentFormInner = ({
         setStripeError(result.error.message);
       } else {
         if (result.paymentIntent.status === "succeeded") {
-          console.log("[Stripe] Payment success:", result.paymentIntent.id);
           onSuccess();
         }
       }

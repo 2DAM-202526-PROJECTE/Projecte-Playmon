@@ -1,11 +1,13 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useVideoAsset } from "../hooks/useVideoAssets";
 import Reproductor from "./Reproductor";
-import { getCurrentUser } from "@/api/authApi";
+import { useSeguirViendo } from "@/context/SeguirViendoContext";
+import { useHistorial } from "@/context/HistorialContext";
+import { usePlaymonHistorial } from "@/context/PlaymonHistorialContext";
+import { usePlaymonSeguirViendo } from "@/context/PlaymonSeguirViendoContext";
 
 export default function PantallaReproduccio() {
-  const currentUser = getCurrentUser();
   const params = useParams();
   const urlId = params.id || params.videoId;
   const navigate = useNavigate();
@@ -13,57 +15,101 @@ export default function PantallaReproduccio() {
 
   const videoDirecte = location.state?.fonts ? location.state : null;
   const keepOnEnd = location.state?.keepOnEnd ?? false;
-  const { dades: videoBD, carregant, error } = useVideoAsset(videoDirecte ? null : urlId);
+  // isOriginal works both when navigated with fonts (from OriginalVideoCard)
+  // and without fonts (from HistoryList/WatchlistPanel via API fetch)
+  const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : !!location.state?.isOriginal;
 
+  const { dades: videoBD, carregant, error } = useVideoAsset(videoDirecte ? null : urlId);
   const video = videoDirecte ?? videoBD;
 
-  const [initialTime] = useState(() => {
-    const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-    const saved = localStorage.getItem(historyKey);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const currentId = videoDirecte ? videoDirecte.id : urlId;
-        const history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-        const item = history.find(p => String(p.id) === String(currentId));
-        if (item) return Number(item.savedTime);
-      } catch (e) {}
-    }
-    return 0;
-  });
+  const { saveProgress, removeProgress, getProgress }             = useSeguirViendo();
+  const { addToHistorial }                                         = useHistorial();
+  const { addToHistorial: addToPlaymonHistorial }                  = usePlaymonHistorial();
+  const { saveProgress: savePlaymonProgress,
+          removeProgress: removePlaymonProgress,
+          getProgress: getPlaymonProgress,
+          loading: svLoading }                                     = usePlaymonSeguirViendo();
 
-  const handleTimeUpdate = (time) => {
-    if (!video) return;
-    const mediaType = location.pathname.includes('/tv') ? 'tv' : 'movie';
-    const currentId = videoDirecte ? videoDirecte.id : urlId;
-    const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-    
-    if (time > 0 && !isOriginal) {
-      const newItem = {
+  const lastSaveRef       = useRef(0);
+  const isFinishedRef     = useRef(false);
+  const historialSavedRef = useRef(false);
+  const lastTimeRef       = useRef(0);
+  const lastDurationRef   = useRef(0);
+  const currentVideoRef   = useRef(null);
+
+  const currentId = videoDirecte ? videoDirecte.id : urlId;
+
+  // Save progress on unmount: catches the case where user navigates away
+  // between periodic saves (e.g., stops at t=3, first save was at t=1)
+  useEffect(() => {
+    return () => {
+      if (isOriginal && !isFinishedRef.current && lastTimeRef.current > 0 && currentVideoRef.current) {
+        savePlaymonProgress(currentVideoRef.current, lastTimeRef.current, lastDurationRef.current);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Non-originals: getProgress reads localStorage (sync, safe at init time)
+  // Originals: getPlaymonProgress reads API data (async) — start null, set via effect
+  const [initialTime, setInitialTime] = useState(
+    () => isOriginal ? null : getProgress(currentId)
+  );
+  const didSetInitialTime = useRef(false);
+
+  useEffect(() => {
+    if (!isOriginal || svLoading || didSetInitialTime.current) return;
+    didSetInitialTime.current = true;
+    setInitialTime(getPlaymonProgress(currentId));
+  }, [isOriginal, svLoading, getPlaymonProgress, currentId]);
+
+  const handleTimeUpdate = useCallback((time, duration) => {
+    if (!video || isFinishedRef.current) return;
+
+    if (isOriginal) {
+      const videoObj = {
+        id: currentId,
+        title: video.titol,
+        poster: video.poster,
+        thumbnailDataUrl: video.poster,
+      };
+
+      currentVideoRef.current = videoObj;
+      lastTimeRef.current = time;
+      lastDurationRef.current = duration || 0;
+
+      if (time >= 1 && !historialSavedRef.current) {
+        historialSavedRef.current = true;
+        addToPlaymonHistorial(videoObj);
+      }
+
+      if (time >= 1 && (lastSaveRef.current === 0 || Math.abs(time - lastSaveRef.current) >= 5)) {
+        lastSaveRef.current = time;
+        savePlaymonProgress(videoObj, time, duration || 0);
+      }
+    } else {
+      const mediaType = videoDirecte?.media_type || (location.pathname.includes('/tv') ? 'tv' : 'movie');
+      const movieObj = {
         id: currentId,
         title: video.titol,
         name: video.titol,
-        backdrop_path: video.poster,
         poster_path: video.poster,
+        backdrop_path: video.poster,
         media_type: mediaType,
-        savedTime: time,
-        completed: false
       };
 
-      try {
-        const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-        const saved = localStorage.getItem(historyKey);
-        let history = [];
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-        }
-        history = history.filter(item => String(item.id) !== String(currentId));
-        history.unshift(newItem);
-        localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 100)));
-      } catch (e) {}
+      if (time >= 1 && !historialSavedRef.current) {
+        historialSavedRef.current = true;
+        addToHistorial(movieObj);
+      }
+
+      if (time >= 1 && (lastSaveRef.current === 0 || Math.abs(time - lastSaveRef.current) >= 5)) {
+        lastSaveRef.current = time;
+        saveProgress(movieObj, time, duration || 120);
+      }
     }
-  };
+  }, [video, videoDirecte, currentId, isOriginal, location.pathname,
+      addToHistorial, saveProgress,
+      addToPlaymonHistorial, savePlaymonProgress]);
 
   if (!videoDirecte && carregant) {
     return (
@@ -91,6 +137,15 @@ export default function PantallaReproduccio() {
     );
   }
 
+  // Wait for originals progress to load before mounting player (avoids seeking to 0)
+  if (isOriginal && initialTime === null) {
+    return (
+      <div className="min-h-screen bg-black text-white grid place-items-center">
+        <div className="text-sm text-white/70">Carregant…</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Reproductor
@@ -101,48 +156,31 @@ export default function PantallaReproduccio() {
         onTimeUpdate={handleTimeUpdate}
         onTornar={() => navigate(-1)}
         onFinal={() => {
-            try {
-              const historyKey = `playmon_continue_${currentUser?.id || 'guest'}`;
-              const saved = localStorage.getItem(historyKey);
-              if (saved) {
-                const parsed = JSON.parse(saved);
-                let history = Array.isArray(parsed) ? parsed : (parsed?.id ? [parsed] : []);
-                const currentId = videoDirecte ? videoDirecte.id : urlId;
-                const isOriginal = videoDirecte ? !!videoDirecte.isOriginal : true;
-                
-                if (!isOriginal) {
-                    const itemIndex = history.findIndex(item => String(item.id) === String(currentId));
-                    if (itemIndex > -1) {
-                      history[itemIndex].completed = true;
-                      history[itemIndex].savedTime = 0;
-                      localStorage.setItem(historyKey, JSON.stringify(history));
-                    }
-                }
-              }
-            } catch (e) {}
+          if (isFinishedRef.current) return;
+          isFinishedRef.current = true;
+          if (isOriginal) {
+            removePlaymonProgress(currentId);
             if (!keepOnEnd) navigate(-1);
+          } else {
+            const mediaType = videoDirecte?.media_type || (location.pathname.includes('/tv') ? 'tv' : 'movie');
+            removeProgress(currentId, mediaType);
+            navigate(`/${mediaType}/${currentId}`, { replace: true });
+          }
         }}
       />
 
       {/* <div className="mx-auto w-full max-w-[1100px] px-5 py-6">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/70">
           {video.any ? (
-            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">
-              {video.any}
-            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">{video.any}</span>
           ) : null}
           {video.genere ? (
-            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">
-              {video.genere}
-            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">{video.genere}</span>
           ) : null}
           {video.duracioText ? (
-            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">
-              {video.duracioText}
-            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/10">{video.duracioText}</span>
           ) : null}
         </div>
-
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">{video.titol}</h1>
         {video.descripcio ? (
           <p className="mt-2 max-w-3xl text-sm text-white/70">{video.descripcio}</p>

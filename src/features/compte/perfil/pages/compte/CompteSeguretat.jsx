@@ -38,7 +38,7 @@ export default function CompteSeguretat() {
             principal={activitat.titol}
             secundari={activitat.dataLloc}
             esquerraIcona={<IconaAvis />}
-            onClick={() => console.log("Obrir detall activitat")}
+            onClick={() => {}}
           />
 
           <Separador />
@@ -47,7 +47,7 @@ export default function CompteSeguretat() {
             principal="Revisa l'activitat de seguretat"
             esquerraIcona={null}
             esCTA
-            onClick={() => console.log("Anar a activitat de seguretat")}
+            onClick={() => {}}
           />
         </div>
       </section>
@@ -62,7 +62,7 @@ export default function CompteSeguretat() {
             principal={`${dispositius.windows.sessions} sessions en ordinadors Windows`}
             secundari={dispositius.windows.resum}
             esquerraIcona={<IconaOrdinador />}
-            onClick={() => console.log("Detall Windows")}
+            onClick={() => {}}
           />
 
           <Separador />
@@ -71,7 +71,7 @@ export default function CompteSeguretat() {
             principal={`${dispositius.androidTelefon.sessions} sessió en un telèfon Android`}
             secundari={dispositius.androidTelefon.resum}
             esquerraIcona={<IconaTelefon />}
-            onClick={() => console.log("Detall telèfon")}
+            onClick={() => {}}
           />
 
           <Separador />
@@ -80,7 +80,7 @@ export default function CompteSeguretat() {
             principal={`${dispositius.androidTauleta.sessions} sessió en una tauleta Android`}
             secundari={dispositius.androidTauleta.resum}
             esquerraIcona={<IconaTauleta />}
-            onClick={() => console.log("Detall tauleta")}
+            onClick={() => {}}
           />
 
           {/* <Separador />
@@ -88,7 +88,7 @@ export default function CompteSeguretat() {
           <Fila
             principal="Cerca un dispositiu perdut"
             esquerraIcona={<IconaLocalitzacio />}
-            onClick={() => console.log("Cerca dispositiu")}
+            onClick={() => {}}
           /> */}
 
           <Separador />
@@ -97,7 +97,7 @@ export default function CompteSeguretat() {
             principal="Gestiona tots els dispositius"
             esquerraIcona={null}
             badge={String(dispositius.total)}
-            onClick={() => console.log("Gestiona dispositius")}
+            onClick={() => {}}
           />
         </div>
       </section>

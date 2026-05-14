@@ -8,22 +8,12 @@ import PersonalPanel from './components/PersonalPanel'
 import CreatorModal from './components/CreatorModal'
 import { getCurrentUser } from '@/api/authApi'
 import { getVideos, deleteVideo } from '@/api/videosApi'
+import { useLikePlaymonOriginals } from '@/context/LikePlaymonOriginalsContext'
+import { useVisitesOriginals } from '@/context/VisitesOriginalsContext'
 
-// ─── localStorage metadata (likes i views, no persistits a BD) ───────────────
-const META_KEY = 'playmon_originals_meta'
-
-function loadMeta() {
-    try { return JSON.parse(localStorage.getItem(META_KEY) || '{}') }
-    catch { return {} }
-}
-
-function saveMeta(meta) {
-    localStorage.setItem(META_KEY, JSON.stringify(meta))
-}
 
 // ─── Normalitza un vídeo de la API al format que espera OriginalVideoCard ─────
-function normalizeVideo(v, meta) {
-    const m = meta[String(v.id)] || {}
+function normalizeVideo(v) {
     return {
         id: String(v.id),
         userId: String(v.user_id),
@@ -35,8 +25,6 @@ function normalizeVideo(v, meta) {
         category: v.categoria || '',
         createdAt: v.created_at || new Date().toISOString(),
         videoUrl: v.video_url,
-        likes: m.likes ?? [],
-        views: m.views ?? 0,
     }
 }
 
@@ -80,8 +68,7 @@ export default function OriginalsPage() {
     // Validació del pla
     const hasUltraPlan = currentUser?.pla_pagament?.toLowerCase() === 'ultra'
 
-    const [rawVideos, setRawVideos] = useState([])   // dades de la API
-    const [meta, setMeta] = useState(loadMeta)        // likes/views locals
+    const [rawVideos, setRawVideos] = useState([])
     const [loading, setLoading] = useState(true)
     const [loadError, setLoadError] = useState(null)
 
@@ -198,6 +185,9 @@ export default function OriginalsPage() {
         )
     }
 
+    const { getLikeCount } = useLikePlaymonOriginals()
+    const { getViewCount, recordView } = useVisitesOriginals()
+
     const [showModal, setShowModal] = useState(false)
     const [editingVideo, setEditingVideo] = useState(null)
     const [panelOpen, setPanelOpen] = useState(false)
@@ -222,8 +212,7 @@ export default function OriginalsPage() {
 
     useEffect(() => { fetchVideos() }, [fetchVideos])
 
-    // ── Vídeos normalitzats (API + metadata local) ───────────────────────────
-    const videos = useMemo(() => rawVideos.map(v => normalizeVideo(v, meta)), [rawVideos, meta])
+    const videos = useMemo(() => rawVideos.map(normalizeVideo), [rawVideos])
 
     // ── Categories disponibles ───────────────────────────────────────────────
     const categories = useMemo(() => {
@@ -245,11 +234,11 @@ export default function OriginalsPage() {
         return [...filtered].sort((a, b) => {
             if (sortBy === 'newest')     return new Date(b.createdAt) - new Date(a.createdAt)
             if (sortBy === 'oldest')     return new Date(a.createdAt) - new Date(b.createdAt)
-            if (sortBy === 'mostLiked')  return (b.likes?.length ?? 0) - (a.likes?.length ?? 0)
-            if (sortBy === 'mostViewed') return (b.views ?? 0) - (a.views ?? 0)
+            if (sortBy === 'mostLiked')  return getLikeCount(b.id) - getLikeCount(a.id)
+            if (sortBy === 'mostViewed') return getViewCount(b.id) - getViewCount(a.id)
             return 0
         })
-    }, [videos, searchQuery, activeCategory, sortBy])
+    }, [videos, searchQuery, activeCategory, sortBy, getLikeCount, getViewCount])
 
     // ── Handlers ────────────────────────────────────────────────────────────
     const handleSave = (savedVideo) => {
@@ -276,45 +265,9 @@ export default function OriginalsPage() {
         try {
             await deleteVideo(id)
             setRawVideos(prev => prev.filter(v => String(v.id) !== String(id)))
-            // Netejar metadata del vídeo eliminat
-            setMeta(prev => {
-                const updated = { ...prev }
-                delete updated[String(id)]
-                saveMeta(updated)
-                return updated
-            })
         } catch {
-            // Si falla el delete de la API, refresquem per assegurar consistència
             fetchVideos()
         }
-    }
-
-    const handleLike = (videoId) => {
-        if (!currentUser) return
-        const uid = String(currentUser.id)
-        setMeta(prev => {
-            const m = { ...prev }
-            const entry = { ...(m[videoId] || { likes: [], views: 0 }) }
-            const isLiked = entry.likes.includes(uid)
-            entry.likes = isLiked ? entry.likes.filter(id => id !== uid) : [...entry.likes, uid]
-            m[videoId] = entry
-            saveMeta(m)
-            return m
-        })
-    }
-
-    const handleView = (videoId) => {
-        const sessionKey = `playmon_originals_viewed_${videoId}`
-        if (sessionStorage.getItem(sessionKey)) return
-        sessionStorage.setItem(sessionKey, '1')
-        setMeta(prev => {
-            const m = { ...prev }
-            const entry = { ...(m[videoId] || { likes: [], views: 0 }) }
-            entry.views = (entry.views ?? 0) + 1
-            m[videoId] = entry
-            saveMeta(m)
-            return m
-        })
     }
 
     const openUpload = () => {
@@ -556,8 +509,7 @@ export default function OriginalsPage() {
                                     isOwn={video.userId === String(currentUser?.id)}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
-                                    onLike={handleLike}
-                                    onView={handleView}
+                                    onView={recordView}
                                     onOpenCreator={setCreatorToShow}
                                 />
                             ))}

@@ -27,7 +27,6 @@ export const ProtectedRoute = ({ element, requiredRole }) => {
                 setHasValidAuth(!!user);
                 setUserRole(user?.role ?? null);
             } catch (error) {
-                console.error("Failed to fetch user data:", error);
                 setHasValidAuth(false);
                 setUserRole(null);
             } finally {

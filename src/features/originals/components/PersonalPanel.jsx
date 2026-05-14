@@ -4,6 +4,9 @@ import {
     HiPencil, HiTrash
 } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
+import { useLlistaOriginals } from '@/context/LlistaOriginalsContext'
+import { usePlaymonHistorial } from '@/context/PlaymonHistorialContext'
+import { useNavigate } from 'react-router-dom'
 
 // ─── Tab button ───────────────────────────────────────────────────────────────
 function Tab({ active, onClick, icon: Icon, label, count }) {
@@ -30,6 +33,8 @@ function Tab({ active, onClick, icon: Icon, label, count }) {
 
 // ─── My videos list ───────────────────────────────────────────────────────────
 function MyVideosList({ videos, onEdit, onDelete }) {
+    const { isInLlista, toggleLlista } = useLlistaOriginals()
+
     if (videos.length === 0) return (
         <div className="flex flex-col items-center justify-center py-10 text-center px-2">
             <HiFilm className="text-white/15 text-3xl mb-2" />
@@ -39,36 +44,94 @@ function MyVideosList({ videos, onEdit, onDelete }) {
 
     return (
         <div className="flex flex-col gap-2">
-            {videos.map(video => (
-                <div key={video.id}
-                    className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group">
-                    {/* Thumbnail */}
+            {videos.map(video => {
+                const inLlista = isInLlista(video.id)
+                return (
+                    <div key={video.id}
+                        className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group">
+                        {/* Thumbnail */}
+                        <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
+                            {video.thumbnailDataUrl
+                                ? <img src={video.thumbnailDataUrl} alt={video.title} className="w-full h-full object-cover" />
+                                : <div className="w-full h-full flex items-center justify-center"
+                                    style={{ background: 'linear-gradient(135deg,#1a0f00,#0d0d0d)' }}>
+                                    <HiFilm className="text-[#CC8400]/30 text-lg" />
+                                </div>
+                            }
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0 self-center">
+                            <p className="text-white/85 text-xs font-medium truncate">{video.title}</p>
+                            {video.category && (
+                                <span className="text-[10px] text-[#CC8400]/70">{video.category}</span>
+                            )}
+                        </div>
+                        {/* Actions */}
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 items-center">
+                            <button onClick={(e) => { e.stopPropagation(); toggleLlista(video) }}
+                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${inLlista ? 'text-[#CC8400] bg-[#CC8400]/10' : 'text-white/50 hover:text-[#CC8400] hover:bg-[#CC8400]/10'}`}
+                                title={inLlista ? 'Treure de la llista' : 'Afegir a la llista'}
+                            >
+                                <HiBookmark className={`text-xs ${inLlista ? 'fill-current' : ''}`} />
+                            </button>
+                            <button onClick={() => onEdit(video)}
+                                className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-white/90 hover:bg-white/10 transition-all"
+                                title="Editar vídeo">
+                                <HiPencil className="text-xs" />
+                            </button>
+                            <button onClick={() => onDelete(video.id)}
+                                className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                                title="Eliminar vídeo">
+                                <HiTrash className="text-xs" />
+                            </button>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
+function HistoryList() {
+    const { historial, loading } = usePlaymonHistorial()
+    const navigate = useNavigate()
+
+    if (loading) return (
+        <div className="flex justify-center py-10">
+            <div className="w-5 h-5 border-2 border-white/15 border-t-[#CC8400] rounded-full animate-spin" />
+        </div>
+    )
+
+    if (historial.length === 0) return (
+        <div className="flex flex-col items-center justify-center py-12 text-center px-2">
+            <HiClock className="text-white/15 text-4xl mb-3" />
+            <p className="text-white/50 text-sm font-medium mb-1">Encara no hi ha res a l'historial</p>
+            <p className="text-white/30 text-xs max-w-[200px]">Els vídeos d'Originals que vegis apareixeran aquí.</p>
+        </div>
+    )
+
+    return (
+        <div className="flex flex-col gap-2">
+            {historial.map(item => (
+                <div key={item.video_id}
+                    className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/play/${item.video_id}`, {
+                        state: { isOriginal: true, keepOnEnd: true }
+                    })}>
                     <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
-                        {video.thumbnailDataUrl
-                            ? <img src={video.thumbnailDataUrl} alt={video.title} className="w-full h-full object-cover" />
+                        {item.thumbnail_url
+                            ? <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
                             : <div className="w-full h-full flex items-center justify-center"
                                 style={{ background: 'linear-gradient(135deg,#1a0f00,#0d0d0d)' }}>
                                 <HiFilm className="text-[#CC8400]/30 text-lg" />
                             </div>
                         }
                     </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                        <p className="text-white/85 text-xs font-medium truncate">{video.title}</p>
-                        {video.category && (
-                            <span className="text-[10px] text-[#CC8400]/70">{video.category}</span>
-                        )}
-                    </div>
-                    {/* Actions */}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 items-start pt-0.5">
-                        <button onClick={() => onEdit(video)}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-[#CC8400] hover:bg-[#CC8400]/10 transition-all">
-                            <HiPencil className="text-xs" />
-                        </button>
-                        <button onClick={() => onDelete(video.id)}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                            <HiTrash className="text-xs" />
-                        </button>
+                    <div className="flex-1 min-w-0 self-center">
+                        <p className="text-white/85 text-xs font-medium truncate">{item.title}</p>
+                        <p className="text-white/30 text-[10px]">
+                            {item.updated_at ? new Date(item.updated_at).toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' }) : ''}
+                        </p>
                     </div>
                 </div>
             ))}
@@ -76,22 +139,57 @@ function MyVideosList({ videos, onEdit, onDelete }) {
     )
 }
 
-function HistoryList() {
-    return (
-        <div className="flex flex-col items-center justify-center py-12 text-center px-2">
-            <HiClock className="text-white/15 text-4xl mb-3" />
-            <p className="text-white/50 text-sm font-medium mb-1">Encara no hi ha res a l'historial</p>
-            <p className="text-white/30 text-xs max-w-[200px]">Els vídeos d'Originals que vegis apareixeran aquí.</p>
+function WatchlistPanel() {
+    const { llista, loading, toggleLlista } = useLlistaOriginals()
+    const navigate = useNavigate()
+
+    if (loading) return (
+        <div className="flex justify-center py-10">
+            <div className="w-5 h-5 border-2 border-white/15 border-t-[#CC8400] rounded-full animate-spin" />
         </div>
     )
-}
 
-function WatchlistPanel() {
-    return (
+    if (llista.length === 0) return (
         <div className="flex flex-col items-center justify-center py-12 text-center px-2">
             <HiBookmark className="text-white/15 text-4xl mb-3" />
             <p className="text-white/50 text-sm font-medium mb-1">Encara no tens cap vídeo guardat</p>
-            <p className="text-white/30 text-xs max-w-[200px]">Desa els vídeos d'Originals que t'interessin per trobar-los fàcilment.</p>
+            <p className="text-white/30 text-xs max-w-[200px]">Prem el marcador en qualsevol vídeo per afegir-lo aquí.</p>
+        </div>
+    )
+
+    return (
+        <div className="flex flex-col gap-2">
+            {llista.map(item => (
+                <div key={item.video_id}
+                    className="flex gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer"
+                    onClick={() => {
+                        navigate(`/play/${item.video_id}`, {
+                            state: { isOriginal: true, keepOnEnd: true }
+                        });
+                    }}>
+                    <div className="w-20 h-[45px] rounded-lg overflow-hidden flex-shrink-0 bg-[#0d0d0d]">
+                        {item.thumbnail_url
+                            ? <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center"
+                                style={{ background: 'linear-gradient(135deg,#1a0f00,#0d0d0d)' }}>
+                                <HiFilm className="text-[#CC8400]/30 text-lg" />
+                            </div>
+                        }
+                    </div>
+                    <div className="flex-1 min-w-0 self-center">
+                        <p className="text-white/85 text-xs font-medium truncate">{item.title}</p>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 items-center">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); toggleLlista({ id: item.video_id, title: item.title, thumbnailDataUrl: item.thumbnail_url }) }}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            title="Treure de la llista"
+                        >
+                            <HiTrash className="text-xs" />
+                        </button>
+                    </div>
+                </div>
+            ))}
         </div>
     )
 }

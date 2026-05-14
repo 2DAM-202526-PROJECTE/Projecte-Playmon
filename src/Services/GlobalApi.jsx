@@ -199,7 +199,6 @@ const searchGlobal = async (query) => {
 
         return { data: { results: [...resultPelis, ...resultSeries] } };
     } catch (error) {
-        console.error("Error performing global search:", error);
         return { data: { results: [] } };
     }
 };

@@ -1,110 +1,78 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { useWatchlist } from '@/context/WatchlistContext'
 import MovieCard from '@/components/MovieCard'
 
-function UndoToast({ item, onUndo, onDismiss }) {
-    const title = item?.title || item?.name || 'Element'
-    return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4
-                        bg-[#1e1e1e] border border-white/15 rounded-2xl px-5 py-3.5 shadow-2xl
-                        backdrop-blur-sm min-w-[280px] max-w-[420px]">
-            <p className="text-white/80 text-sm flex-1 truncate">
-                <span className="text-white/45 mr-1">＋</span>
-                <span className="font-medium text-white/90">"{title}"</span>
-                {' '}eliminat de Veure més tard
-            </p>
-            <div className="flex items-center gap-3 flex-shrink-0">
-                <button
-                    onClick={onUndo}
-                    className="text-[#CC8400] text-sm font-bold hover:text-[#E09400] transition-colors"
-                >
-                    Desfer
-                </button>
-                <button
-                    onClick={onDismiss}
-                    className="text-white/30 hover:text-white/60 text-lg leading-none transition-colors"
-                >
-                    ×
-                </button>
-            </div>
-        </div>
-    )
-}
+const ITEMS_PER_PAGE = 20;
 
 export default function CompteLlista() {
-    const [movies, setMovies] = useState([])
-    const [undoItem, setUndoItem] = useState(null)
-    const timerRef = useRef(null)
-
-    const refresh = () =>
-        setMovies(JSON.parse(localStorage.getItem('playmon_watchlist') || '[]'))
+    const { watchlist, loading, refresh } = useWatchlist()
+    const [page, setPage] = useState(1)
 
     useEffect(() => { refresh() }, [])
 
-    useEffect(() => {
-        const handler = (e) => {
-            const { action, item } = e.detail
-            refresh()
-            if (action === 'remove') {
-                if (timerRef.current) clearTimeout(timerRef.current)
-                setUndoItem(item)
-                timerRef.current = setTimeout(() => setUndoItem(null), 5000)
-            } else {
-                setUndoItem(null)
-                if (timerRef.current) clearTimeout(timerRef.current)
-            }
-        }
-        window.addEventListener('playmon:watchlist-changed', handler)
-        return () => {
-            window.removeEventListener('playmon:watchlist-changed', handler)
-            if (timerRef.current) clearTimeout(timerRef.current)
-        }
-    }, [])
-
-    const handleUndo = () => {
-        if (!undoItem) return
-        if (timerRef.current) clearTimeout(timerRef.current)
-        const watchlist = JSON.parse(localStorage.getItem('playmon_watchlist') || '[]')
-        watchlist.push(undoItem)
-        localStorage.setItem('playmon_watchlist', JSON.stringify(watchlist))
-        window.dispatchEvent(new CustomEvent('playmon:watchlist-changed', {
-            detail: { action: 'add', item: undoItem }
-        }))
-        setUndoItem(null)
-    }
-
-    const handleDismiss = () => {
-        if (timerRef.current) clearTimeout(timerRef.current)
-        setUndoItem(null)
-    }
+    const totalPages = Math.ceil(watchlist.length / ITEMS_PER_PAGE)
+    const currentItems = watchlist.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
 
     return (
-        <div className="bg-[#111] p-6 lg:p-8 rounded-2xl min-h-[600px] border border-white/5">
-            <div className="mb-8 border-b border-white/10 pb-6">
-                <h1 className="text-3xl font-bold text-white mb-2">Veure més tard</h1>
-                <p className="text-[#A0A0A0]">Totes les pel·lícules i sèries que has desat per a revisar-les.</p>
-            </div>
+        <div className="space-y-6">
+            <header className="space-y-2">
+                <h1 className="text-3xl font-semibold tracking-tight text-white">Veure més tard</h1>
+                <p className="text-sm text-white/60 max-w-3xl">
+                    Totes les pel·lícules i sèries que has desat per a revisar-les.
+                </p>
+            </header>
 
-            {movies.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                    </svg>
-                    <h3 className="text-xl font-medium text-white/60 mb-2">La teva llista està buida</h3>
-                    <p className="text-white/40">Busca pel·lícules al catàleg i prem el botó '+' per començar a desar el teu contingut preferit.</p>
-                </div>
-            ) : (
-                <div className="flex flex-wrap gap-4 md:gap-6">
-                    {movies.map(movie => (
-                        <div key={movie.id} className="flex-shrink-0">
-                            <MovieCard movie={movie} />
+            <section className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-6 min-h-[600px]">
+                {loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-[#CC8400] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                ) : watchlist.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <svg className="w-16 h-16 text-white/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        <h3 className="text-xl font-medium text-white/60 mb-2">La teva llista està buida</h3>
+                        <p className="text-white/40">Busca pel·lícules al catàleg i prem el botó '+' per començar a desar el teu contingut preferit.</p>
+                    </div>
+                ) : (
+                    <>
+                        <p className="text-xs text-white/35 mb-5 uppercase tracking-widest font-semibold">
+                            {watchlist.length} {watchlist.length === 1 ? 'element' : 'elements'}
+                        </p>
+
+                        <div className="flex flex-wrap gap-4 md:gap-6">
+                            {currentItems.map(movie => (
+                                <div key={movie.tmdb_id || movie.id} className="flex-shrink-0">
+                                    <MovieCard movie={movie} />
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
 
-            {undoItem && (
-                <UndoToast item={undoItem} onUndo={handleUndo} onDismiss={handleDismiss} />
-            )}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t border-white/[0.06]">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    ← Anterior
+                                </button>
+                                <span className="text-xs font-bold text-white/35 uppercase tracking-widest">
+                                    Pàgina {page} de {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="px-4 py-2 rounded-xl text-sm font-semibold text-white/60 border border-white/[0.08] hover:bg-white/[0.05] hover:text-white disabled:opacity-30 transition-all"
+                                >
+                                    Següent →
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </section>
         </div>
     )
 }

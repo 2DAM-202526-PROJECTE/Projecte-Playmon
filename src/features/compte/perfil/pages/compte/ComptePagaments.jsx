@@ -93,7 +93,6 @@ export default function ComptePagaments() {
       setUser(updatedUser);
       setStep("success");
     } catch (error) {
-      console.error("Error updating subscription:", error);
       alert("Error al processar el canvi de pla");
     } finally {
       setLoading(false);

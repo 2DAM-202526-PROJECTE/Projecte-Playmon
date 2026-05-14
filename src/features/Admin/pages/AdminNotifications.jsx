@@ -17,8 +17,6 @@ export default function AdminNotifications() {
         if (!message) return;
         
         // Aquí s'hauria de cridar a l'API per guardar la notificació
-        console.log("Enviant notificació:", { message, type });
-        
         setSent(true);
         setTimeout(() => {
             setSent(false);

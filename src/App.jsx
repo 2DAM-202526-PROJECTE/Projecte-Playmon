@@ -17,9 +17,9 @@ import CompteContrasenya from "@/features/compte/perfil/pages/compte/CompteContr
 import CompteConnexions from "@/features/compte/perfil/pages/compte/CompteConnexions.jsx";
 import ComptePrivadesa from "@/features/compte/perfil/pages/compte/ComptePrivadesa.jsx";
 import CompteLlista from "@/features/compte/perfil/pages/compte/CompteLlista.jsx";
+import CompteFavorits from "@/features/compte/perfil/pages/compte/CompteFavorits.jsx";
 import CompteHistorial from "@/features/compte/perfil/pages/compte/CompteHistorial.jsx";
 import ComptePagaments from "@/features/compte/perfil/pages/compte/ComptePagaments.jsx";
-import CompteFavorits from "@/features/compte/perfil/pages/compte/CompteFavorits.jsx";
 import NotFound from '@/features/NotFound/NotFound.jsx';
 import Forbidden from '@/features/Forbidden/Forbidden.jsx';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -29,6 +29,15 @@ import TvDetailPage from '@/features/detail/TvDetailPage';
 import MoviesPage from '@/features/movies/MoviesPage';
 import SeriesPage from '@/features/series/SeriesPage';
 import OriginalsPage from '@/features/originals/OriginalsPage';
+import { FavoritesProvider } from '@/context/FavoritesContext';
+import { WatchlistProvider } from '@/context/WatchlistContext';
+import { SeguirViendoProvider } from '@/context/SeguirViendoContext';
+import { HistorialProvider } from '@/context/HistorialContext';
+import { LlistaOriginalsProvider } from '@/context/LlistaOriginalsContext';
+import { PlaymonHistorialProvider } from '@/context/PlaymonHistorialContext';
+import { PlaymonSeguirViendoProvider } from '@/context/PlaymonSeguirViendoContext';
+import { LikePlaymonOriginalsProvider } from '@/context/LikePlaymonOriginalsContext';
+import { VisitesOriginalsProvider } from '@/context/VisitesOriginalsContext';
 
 // Admin Pages
 import AdminStats from '@/features/Admin/pages/AdminStats.jsx';
@@ -39,6 +48,15 @@ import AdminNotifications from '@/features/Admin/pages/AdminNotifications.jsx';
 const App = () => {
   return (
     <Router>
+      <FavoritesProvider>
+      <WatchlistProvider>
+      <SeguirViendoProvider>
+      <HistorialProvider>
+      <LlistaOriginalsProvider>
+      <PlaymonHistorialProvider>
+      <PlaymonSeguirViendoProvider>
+      <LikePlaymonOriginalsProvider>
+      <VisitesOriginalsProvider>
       <div className="app min-h-screen" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #111111 40%, #0d0a00 70%, #1a0f00 100%)' }}>
         <Routes>
           <Route path="/"
@@ -69,9 +87,9 @@ const App = () => {
             <Route path="connexions" element={<CompteConnexions />} />
             <Route path="privadesa" element={<ComptePrivadesa />} />
             <Route path="llista" element={<CompteLlista />} />
+            <Route path="favorits" element={<CompteFavorits />} />
             <Route path="historial" element={<CompteHistorial />} />
             <Route path="pagaments" element={<ComptePagaments />} />
-            <Route path="favorits" element={<CompteFavorits />} />
           </Route>
 
           <Route path="/login"
@@ -103,6 +121,15 @@ const App = () => {
           /> */}
         </Routes>
       </div>
+      </VisitesOriginalsProvider>
+      </LikePlaymonOriginalsProvider>
+      </PlaymonSeguirViendoProvider>
+      </PlaymonHistorialProvider>
+      </LlistaOriginalsProvider>
+      </HistorialProvider>
+      </SeguirViendoProvider>
+      </WatchlistProvider>
+      </FavoritesProvider>
     </Router>
   );
 };

@@ -40,7 +40,7 @@ export default function Reproductor({ titol, poster, fonts, initialTime = 0, onT
     if (estat.ended) {
         onFinal?.();
     } else if (estat.currentTime > 0) {
-        onTimeUpdate?.(estat.currentTime);
+        onTimeUpdate?.(estat.currentTime, estat.duration);
     }
   }, [estat.ended, estat.currentTime, onFinal, onTimeUpdate]);
 
