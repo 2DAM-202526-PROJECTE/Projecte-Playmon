@@ -267,7 +267,8 @@ export default function PerfilCard({ user, cameraIcon, onEditProfile, onChangePh
                                     color: AMBER, fontSize: 13, fontWeight: 500,
                                     cursor: 'pointer', whiteSpace: 'nowrap',
                                     fontFamily: 'inherit',
-                                }}
+                                }} 
+                                // Porta al pla de pagaments, on es pot gestionar la subscripció (canviar pla, veure factures, etc)
                             >
                                 Gestionar →
                             </button>
