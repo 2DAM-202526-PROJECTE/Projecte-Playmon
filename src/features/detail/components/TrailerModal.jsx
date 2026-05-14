@@ -5,11 +5,12 @@ export default function TrailerModal({ trailerKey, titol, onTancar }) {
     const iframeRef = useRef(null)
     const containerRef = useRef(null)
     const [playing, setPlaying] = useState(true)
-    const [muted, setMuted] = useState(false)
+    const [muted, setMuted] = useState(true)
     const [volume, setVolume] = useState(80)
     const [fullscreen, setFullscreen] = useState(false)
     const [mostraControls, setMostraControls] = useState(true)
     const timerRef = useRef(null)
+    const unmuteTimerRef = useRef(null)
 
     useEffect(() => {
         document.body.style.overflow = 'hidden'
@@ -28,9 +29,26 @@ export default function TrailerModal({ trailerKey, titol, onTancar }) {
         return () => document.removeEventListener('fullscreenchange', onChange)
     }, [])
 
-    useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
+    // Desmutar automàticament un cop el player de YouTube s'ha inicialitzat.
+    // El navegador ho permet perquè l'usuari ha fet clic just abans d'obrir el modal.
+    useEffect(() => {
+        unmuteTimerRef.current = setTimeout(() => {
+            iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
+            )
+            iframeRef.current?.contentWindow?.postMessage(
+                JSON.stringify({ event: 'command', func: 'setVolume', args: [80] }), '*'
+            )
+            setMuted(false)
+        }, 2000)
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current)
+            if (unmuteTimerRef.current) clearTimeout(unmuteTimerRef.current)
+        }
+    }, [])
 
-    const embedUrl = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&modestbranding=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&enablejsapi=1&origin=${window.location.origin}`
+    // mute=1 és imprescindible perquè els navegadors permetin l'autoplay
+    const embedUrl = `https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&rel=0&controls=0&disablekb=1&fs=0&iv_load_policy=3&enablejsapi=1&origin=${window.location.origin}`
 
     const sendYT = (func, args = []) => {
         iframeRef.current?.contentWindow?.postMessage(

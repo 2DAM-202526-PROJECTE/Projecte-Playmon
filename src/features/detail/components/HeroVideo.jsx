@@ -64,26 +64,26 @@ function HeroVideo({ backdrop, trailerKey, title }) {
     return (
         <div className='relative w-full h-[65vh] md:h-[75vh] overflow-hidden bg-black'>
 
-            {/* Backdrop estàtic — s'amaga quan el vídeo comença */}
-            {backdropSrc && (
-                <div className='absolute inset-0 transition-opacity duration-1000'
-                    style={{ opacity: videoReady ? 0 : 1 }}>
-                    <img src={backdropSrc} alt={title}
-                        className='w-full h-full object-cover object-center' />
-                </div>
-            )}
-
-            {/* iFrame YouTube — autoplay muted en bucle */}
+            {/* iFrame YouTube — sempre renderitzat i visible perquè Chrome permeti l'autoplay */}
             {heroEmbedUrl && (
-                <div className='absolute inset-0 transition-opacity duration-1000'
-                    style={{ opacity: videoReady ? 1 : 0 }}>
+                <div className='absolute inset-0'>
                     <iframe
                         ref={iframeRef}
                         className='absolute top-1/2 left-1/2 w-[177.78vh] min-w-full min-h-[56.25vw] h-auto -translate-x-1/2 -translate-y-1/2 pointer-events-none'
                         src={heroEmbedUrl}
                         title={title}
-                        allow="autoplay; encrypted-media"
+                        allow="autoplay; encrypted-media; fullscreen"
+                        allowFullScreen
                     />
+                </div>
+            )}
+
+            {/* Backdrop estàtic — cobreix l'iframe per amagar la càrrega inicial, desapareix quan el vídeo arrenca */}
+            {backdropSrc && (
+                <div className='absolute inset-0 z-10 transition-opacity duration-1000 pointer-events-none'
+                    style={{ opacity: videoReady ? 0 : 1 }}>
+                    <img src={backdropSrc} alt={title}
+                        className='w-full h-full object-cover object-center' />
                 </div>
             )}
 

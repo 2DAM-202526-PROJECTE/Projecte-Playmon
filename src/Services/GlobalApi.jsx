@@ -1,5 +1,26 @@
 import axios from "axios";
 
+// Extreu la clau de YouTube d'una URL o d'un ID directe.
+// Retorna null si la URL no és de YouTube (p. ex. Cloudinary, MP4...).
+function extractYouTubeKey(url) {
+    if (!url || typeof url !== 'string') return null
+    // Format: youtube.com/watch?v=XXXXX o youtube.com/embed/XXXXX
+    if (url.includes('youtube.com')) {
+        const vParam = url.match(/[?&]v=([a-zA-Z0-9_-]{8,15})/)
+        if (vParam) return vParam[1]
+        const embedMatch = url.match(/\/embed\/([a-zA-Z0-9_-]{8,15})/)
+        if (embedMatch) return embedMatch[1]
+    }
+    // Format curt: youtu.be/XXXXX
+    if (url.includes('youtu.be/')) {
+        const key = url.split('youtu.be/')[1]?.split('?')[0]
+        if (key && /^[a-zA-Z0-9_-]{8,15}$/.test(key)) return key
+    }
+    // ID directe (sense esquema ni barres)
+    if (/^[a-zA-Z0-9_-]{8,15}$/.test(url)) return url
+    return null
+}
+
 // Local Backend URL
 const movieBaseUrl = "https://playmonserver.vercel.app/api/pelis"
 const seriesBaseUrl = "https://playmonserver.vercel.app/api/series"
@@ -51,13 +72,10 @@ const mapMovie = (m) => {
         
         // Video / Trailer (Expected as results array)
         videos: {
-            results: m.video_url ? [
-                { 
-                    key: m.video_url.includes('v=') ? m.video_url.split('v=')[1].split('&')[0] : m.video_url, 
-                    site: 'YouTube', 
-                    type: 'Trailer' 
-                }
-            ] : []
+            results: (() => {
+                const key = extractYouTubeKey(m.video_url)
+                return key ? [{ key, site: 'YouTube', type: 'Trailer' }] : []
+            })()
         },
         
         // Empty stubs for non-migrated features

@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '@/components/Header'
+import MainLayout from '@/layouts/MainLayout'
 import Slider from './components/Slider'
-import HomeFooter from './components/HomeFooter'
 import MovieCard from '@/components/MovieCard'
 import GlobalApi from '@/Services/GlobalApi'
 import { getCurrentUser } from '@/api/authApi'
@@ -328,8 +327,7 @@ function ContinueWatchingRow() {
 // ── HomeLayout ─────────────────────────────────────────────────────────────────
 function HomeLayout() {
     return (
-        <div className='min-h-screen' style={{ background: '#0a0a0a' }}>
-            <Header />
+        <MainLayout>
             <main className='pb-10'>
                 <Slider />
                 <ContinueWatchingRow />
@@ -339,8 +337,7 @@ function HomeLayout() {
                     ))}
                 </div>
             </main>
-            <HomeFooter />
-        </div>
+        </MainLayout>
     )
 }
 
