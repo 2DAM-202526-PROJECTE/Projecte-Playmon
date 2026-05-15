@@ -1,16 +1,9 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useToast } from "@/features/compte/perfil/components/toast/ProveidorToast";
+import { changePassword } from "@/api/securityApi";
 
 export default function CompteContrasenya() {
   const { mostraToast } = useToast();
-
-  const usuari = useMemo(
-    () => ({
-      email: "eloi.cortiella@iesebre.com",
-      nom: "Eloi",
-    }),
-    []
-  );
 
   const [pas, setPas] = useState(1);
 
@@ -50,29 +43,16 @@ export default function CompteContrasenya() {
       mostraToast({ tipus: "error", titol: "Error", missatge: msg, duracio: 3500 });
       return;
     }
-
-    try {
-      setCarregant(true);
-      setError("");
-
-      // ✅ Aquí faries la verificació real al backend
-      // await api.verificaContrasenya(contrasenyaActual)
-      await new Promise((r) => setTimeout(r, 250));
-
-      setPas(2);
-      mostraToast({
-        tipus: "exit",
-        titol: "Identitat verificada",
-        missatge: "Ja pots establir una nova contrasenya.",
-        duracio: 2500,
-      });
-    } catch (err) {
-      const m = err?.message ?? "No s'ha pogut verificar la contrasenya.";
-      setError(m);
-      mostraToast({ tipus: "error", titol: "Error", missatge: m, duracio: 4000 });
-    } finally {
-      setCarregant(false);
-    }
+    // La verificació real es fa al pas 2 (POST /users/me/password).
+    // Aquí només passem al pas 2 confiant que ha introduït alguna cosa.
+    setError("");
+    setPas(2);
+    mostraToast({
+      tipus: "info",
+      titol: "Introdueix la nova contrasenya",
+      missatge: "La contrasenya actual es verificarà en guardar.",
+      duracio: 2500,
+    });
   };
 
   const handleCanviar = async (e) => {
@@ -88,15 +68,13 @@ export default function CompteContrasenya() {
       setCarregant(true);
       setError("");
 
-      // ✅ Aquí faries el canvi real al backend
-      // await api.canviaContrasenya({ actual: contrasenyaActual, nova: novaContrasenya })
-      await new Promise((r) => setTimeout(r, 350));
+      await changePassword(contrasenyaActual.trim(), novaContrasenya.trim());
 
       mostraToast({
         tipus: "exit",
         titol: "Contrasenya actualitzada",
-        missatge: "S'ha canviat la contrasenya correctament.",
-        duracio: 3000,
+        missatge: "S'ha canviat la contrasenya correctament. Les altres sessions han estat tancades.",
+        duracio: 3500,
       });
 
       // Reset
