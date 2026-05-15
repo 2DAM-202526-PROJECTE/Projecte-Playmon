@@ -9,6 +9,7 @@ import {
 } from "@/api/securityApi";
 import { logout } from "@/api/authApi";
 import TwoFactorModal from "@/features/compte/perfil/components/TwoFactorModal";
+import { formatUserAgent } from "@/utils/userAgent";
 
 export default function CompteSeguretat() {
     const navigate = useNavigate();
@@ -155,8 +156,8 @@ export default function CompteSeguretat() {
                     ) : (
                         <>
                             {historyVisible.map((h, idx) => (
-                                <div key={h.id} className={`flex items-center justify-between gap-4 px-6 py-4 ${idx > 0 ? "border-t border-white/5" : ""}`}>
-                                    <div className="min-w-0">
+                                <div key={h.id} className={`flex items-start justify-between gap-4 px-6 py-4 ${idx > 0 ? "border-t border-white/5" : ""}`}>
+                                    <div className="flex-1 min-w-0">
                                         <div className="text-sm font-semibold text-white/80 flex items-center gap-2">
                                             <span className={`inline-block h-2 w-2 rounded-full ${h.success ? "bg-emerald-400" : "bg-red-400"}`} />
                                             {h.success ? "Inici de sessió correcte" : "Intent fallit"}
@@ -164,7 +165,7 @@ export default function CompteSeguretat() {
                                         <div className="text-xs text-white/45 mt-1">
                                             {formatDate(h.created_at)} · {h.ip_address || "IP desconeguda"}
                                         </div>
-                                        <div className="text-xs text-white/30 mt-0.5 truncate max-w-md">{h.user_agent}</div>
+                                        <div className="text-xs text-white/40 mt-0.5">{formatUserAgent(h.user_agent)}</div>
                                     </div>
                                 </div>
                             ))}
@@ -217,7 +218,7 @@ export default function CompteSeguretat() {
                                     <div className="text-xs text-white/45 mt-1">
                                         Inici: {formatDate(s.created_at)} · Vista: {formatDate(s.last_seen)}
                                     </div>
-                                    <div className="text-xs text-white/30 mt-0.5 truncate max-w-md">{s.user_agent}</div>
+                                    <div className="text-xs text-white/40 mt-0.5">{formatUserAgent(s.user_agent)}</div>
                                 </div>
                                 {!s.is_current && (
                                     <button

@@ -12,6 +12,7 @@ import { HiDotsVertical } from "react-icons/hi"
 import HeaderItem from './HeaderItem'
 import SearchOverlay from '@/features/search/SearchOverlay'
 import ProfileDropdown from './ProfileDropdown';
+import NotificationBell from './NotificationBell';
 function Header() {
     const [toggle, setToggle] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -103,8 +104,9 @@ function Header() {
                 </div>
             </div>
 
-            {/* Perfil amb desplegable */}
-            <div className="flex justify-end">
+            {/* Notificacions + Perfil */}
+            <div className="flex items-center gap-2 justify-end">
+                <NotificationBell />
                 <ProfileDropdown />
             </div>
 
