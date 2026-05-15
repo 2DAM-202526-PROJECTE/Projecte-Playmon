@@ -18,8 +18,11 @@ function forceLogout(reason) {
     isHandlingForcedLogout = true;
 
     try {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
+        // Neteja completa: no només auth, també qualsevol cache de feature
+        // (favorits, historial, llistes...) que pugui haver-se desat amb prefix
+        // o sense. Així evitem que la nova sessió hereti dades antigues.
+        localStorage.clear();
+        sessionStorage.clear();
     } catch {
         // ignore storage errors
     }
