@@ -19,6 +19,11 @@ export default function CompteSeguretat() {
     const [editingRecovery, setEditingRecovery] = useState(false);
     const [savingRecovery, setSavingRecovery] = useState(false);
     const [revoking, setRevoking] = useState(null);
+    const [historyExpanded, setHistoryExpanded] = useState(false);
+
+    const HISTORY_PREVIEW = 3;
+    const historyVisible = historyExpanded ? history : history.slice(0, HISTORY_PREVIEW);
+    const historyHasMore = history.length > HISTORY_PREVIEW;
 
     const startEditRecovery = () => {
         setRecoveryEmail(settings?.recovery_email || "");
@@ -146,20 +151,34 @@ export default function CompteSeguretat() {
                     {history.length === 0 ? (
                         <div className="p-6 text-sm text-white/40">Encara no hi ha activitat registrada.</div>
                     ) : (
-                        history.map((h, idx) => (
-                            <div key={h.id} className={`flex items-center justify-between gap-4 px-6 py-4 ${idx > 0 ? "border-t border-white/5" : ""}`}>
-                                <div className="min-w-0">
-                                    <div className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                                        <span className={`inline-block h-2 w-2 rounded-full ${h.success ? "bg-emerald-400" : "bg-red-400"}`} />
-                                        {h.success ? "Inici de sessió correcte" : "Intent fallit"}
+                        <>
+                            {historyVisible.map((h, idx) => (
+                                <div key={h.id} className={`flex items-center justify-between gap-4 px-6 py-4 ${idx > 0 ? "border-t border-white/5" : ""}`}>
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                                            <span className={`inline-block h-2 w-2 rounded-full ${h.success ? "bg-emerald-400" : "bg-red-400"}`} />
+                                            {h.success ? "Inici de sessió correcte" : "Intent fallit"}
+                                        </div>
+                                        <div className="text-xs text-white/45 mt-1">
+                                            {formatDate(h.created_at)} · {h.ip_address || "IP desconeguda"}
+                                        </div>
+                                        <div className="text-xs text-white/30 mt-0.5 truncate max-w-md">{h.user_agent}</div>
                                     </div>
-                                    <div className="text-xs text-white/45 mt-1">
-                                        {formatDate(h.created_at)} · {h.ip_address || "IP desconeguda"}
-                                    </div>
-                                    <div className="text-xs text-white/30 mt-0.5 truncate max-w-md">{h.user_agent}</div>
                                 </div>
-                            </div>
-                        ))
+                            ))}
+                            {historyHasMore && (
+                                <button
+                                    type="button"
+                                    onClick={() => setHistoryExpanded((v) => !v)}
+                                    className="flex w-full items-center justify-center gap-2 border-t border-white/5 px-6 py-3 text-xs font-semibold text-[#CC8400] hover:bg-white/[0.02] hover:text-[#FFB800] transition"
+                                >
+                                    {historyExpanded
+                                        ? "Amaga"
+                                        : `Veure ${history.length - HISTORY_PREVIEW} més`}
+                                    <span className={`transition-transform duration-200 ${historyExpanded ? "rotate-180" : ""}`}>▾</span>
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </section>
