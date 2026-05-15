@@ -91,19 +91,17 @@ export async function ensureCurrentUser() {
     const token = getToken();
     if (!token) return null;
 
-    const currentUser = getCurrentUser();
-    if (currentUser) return currentUser;
-
-    const userFromToken = getUserFromToken(token);
-    if (userFromToken) {
-        localStorage.setItem(USER_KEY, JSON.stringify(userFromToken));
-    }
-
+    // Sempre verifiquem contra servidor: si la sessió ha estat revocada des
+    // d'un altre dispositiu, httpClient farà forceLogout i això llançarà 401.
     try {
         const userFromApi = await fetchCurrentUserData();
-        return userFromApi || userFromToken;
-    } catch {
-        return userFromToken;
+        return userFromApi || null;
+    } catch (e) {
+        // 401 → token invàlid o sessió revocada. No fem fallback a token decoded.
+        if (e?.status === 401) return null;
+        // Altres errors (xarxa caiguda...): fallback al cache local per no
+        // expulsar l'usuari per un blip temporal.
+        return getCurrentUser() || getUserFromToken(token);
     }
 }
 
