@@ -8,6 +8,7 @@ import {
     updateSecuritySettings,
 } from "@/api/securityApi";
 import { logout } from "@/api/authApi";
+import TwoFactorModal from "@/features/compte/perfil/components/TwoFactorModal";
 
 export default function CompteSeguretat() {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function CompteSeguretat() {
     const [savingRecovery, setSavingRecovery] = useState(false);
     const [revoking, setRevoking] = useState(null);
     const [historyExpanded, setHistoryExpanded] = useState(false);
+    const [twoFAModal, setTwoFAModal] = useState(null); // "enable" | "disable" | null
 
     const HISTORY_PREVIEW = 3;
     const historyVisible = historyExpanded ? history : history.slice(0, HISTORY_PREVIEW);
@@ -127,8 +129,8 @@ export default function CompteSeguretat() {
                     titol="Verificació 2FA"
                     valor={settings?.two_factor_enabled ? "Activada" : "Desactivada"}
                     estat={settings?.two_factor_enabled ? "actiu" : "inactiu"}
-                    accio={settings?.two_factor_enabled ? "Gestiona" : "Activa"}
-                    onAccio={() => mostraToast({ tipus: "info", titol: "Pròximament", missatge: "Suport 2FA en construcció.", duracio: 2500 })}
+                    accio={settings?.two_factor_enabled ? "Desactiva" : "Activa"}
+                    onAccio={() => setTwoFAModal(settings?.two_factor_enabled ? "disable" : "enable")}
                 />
                 <Card
                     titol="Contrasenya"
@@ -301,6 +303,26 @@ export default function CompteSeguretat() {
                     )}
                 </div>
             </section>
+
+            {twoFAModal && (
+                <TwoFactorModal
+                    mode={twoFAModal}
+                    onClose={() => setTwoFAModal(null)}
+                    onSuccess={async () => {
+                        const enabling = twoFAModal === "enable";
+                        setTwoFAModal(null);
+                        await reload();
+                        mostraToast({
+                            tipus: "exit",
+                            titol: enabling ? "2FA activada" : "2FA desactivada",
+                            missatge: enabling
+                                ? "El teu compte ara està protegit amb verificació en dos passos."
+                                : "Has desactivat la verificació en dos passos.",
+                            duracio: 3000,
+                        });
+                    }}
+                />
+            )}
 
             {/* Zona perillosa */}
             <section className="space-y-3">

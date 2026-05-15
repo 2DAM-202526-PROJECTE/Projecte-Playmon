@@ -36,3 +36,23 @@ export function changePassword(currentPassword, newPassword) {
         }),
     });
 }
+
+// ── 2FA ──────────────────────────────────────────────────────────────────────
+
+export function enable2FA() {
+    return httpClient("/users/me/2fa/enable", { method: "POST" });
+}
+
+export function verify2FA(code) {
+    return httpClient("/users/me/2fa/verify", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+    });
+}
+
+export function disable2FA(code) {
+    return httpClient("/users/me/2fa/disable", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+    });
+}

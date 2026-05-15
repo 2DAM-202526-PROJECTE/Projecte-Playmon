@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TbLockPassword } from "react-icons/tb";
 import { MdAlternateEmail } from "react-icons/md";
 import { IoMdContact } from "react-icons/io";
-import { getToken, login, register } from "../../api/authApi";
+import { getToken, login, loginWith2FA, register } from "../../api/authApi";
 import { getRedirectPath } from "../../components/ProtectedRoute";
 
 export const LoginSingup = () => {
@@ -26,6 +26,11 @@ export const LoginSingup = () => {
     // UI state
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState({ type: "", text: "" }); // type: success|error|info
+
+    // 2FA challenge state
+    const [twoFAStep, setTwoFAStep] = useState(false);
+    const [tempToken, setTempToken] = useState("");
+    const [twoFACode, setTwoFACode] = useState("");
 
     const isRegister = action === "Registrarse";
 
@@ -75,7 +80,14 @@ export const LoginSingup = () => {
         setFeedback({ type: "", text: "" });
 
         try {
-            await login(form.email.trim(), form.password);
+            const data = await login(form.email.trim(), form.password);
+
+            if (data?.requires_2fa) {
+                setTempToken(data.temp_token);
+                setTwoFAStep(true);
+                setFeedback({ type: "info", text: "Introdueix el codi de la teva app autenticadora." });
+                return;
+            }
 
             setFeedback({ type: "success", text: "Sessió iniciada. Redirigint.." });
             const redirectPath = getRedirectPath() || "/";
@@ -85,6 +97,32 @@ export const LoginSingup = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const submit2FA = async () => {
+        if (!/^\d{6}$/.test(twoFACode)) {
+            setFeedback({ type: "error", text: "El codi ha de tenir 6 dígits." });
+            return;
+        }
+        setLoading(true);
+        setFeedback({ type: "", text: "" });
+        try {
+            await loginWith2FA(tempToken, twoFACode);
+            setFeedback({ type: "success", text: "Sessió iniciada. Redirigint.." });
+            const redirectPath = getRedirectPath() || "/";
+            navigate(redirectPath);
+        } catch (e) {
+            setFeedback({ type: "error", text: e?.message || "Codi incorrecte" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const cancel2FA = () => {
+        setTwoFAStep(false);
+        setTempToken("");
+        setTwoFACode("");
+        setFeedback({ type: "", text: "" });
     };
 
     const handleTabClick = (nextAction) => {
@@ -127,11 +165,50 @@ export const LoginSingup = () => {
 
                 <div className="flex flex-col items-center gap-2 mb-6">
                     <h2 className="text-4xl font-bold bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent text-center">
-                        {action}
+                        {twoFAStep ? "Verificació 2FA" : action}
                     </h2>
                     <div className="w-16 h-1 bg-[#CC8400] rounded-full"></div>
                 </div>
 
+                {twoFAStep ? (
+                    <form
+                        onSubmit={(e) => { e.preventDefault(); submit2FA(); }}
+                        className="flex flex-col gap-5"
+                    >
+                        <p className="text-sm text-gray-300 text-center">
+                            Introdueix el codi de 6 dígits de la teva app autenticadora.
+                        </p>
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={twoFACode}
+                            onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            placeholder="000000"
+                            autoFocus
+                            className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.5em] font-mono text-white outline-none focus:border-[#CC8400]/60"
+                        />
+                        {feedbackBox}
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={cancel2FA}
+                                className="flex-1 py-3 rounded-xl font-semibold text-gray-400 bg-black/30 hover:bg-black/50"
+                            >
+                                Enrere
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading || twoFACode.length !== 6}
+                                className="flex-1 py-3 rounded-xl font-bold text-black bg-gradient-to-r from-[#CC8400] to-[#E65100] disabled:opacity-50"
+                            >
+                                {loading ? "Verificant..." : "Verificar"}
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                <>
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -218,6 +295,8 @@ export const LoginSingup = () => {
                         {loading && action === "Registrarse" ? "Enviant..." : "Registrarse"}
                     </button>
                 </div>
+                </>
+                )}
             </div>
         </div>
     );

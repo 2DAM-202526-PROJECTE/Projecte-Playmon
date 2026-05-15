@@ -25,9 +25,23 @@ export async function login(usernameOrEmail, password) {
         }),
     });
 
+    // Si l'usuari té 2FA, NO guardem token encara — només retornem el
+    // challenge perquè el component cridi loginWith2FA(temp_token, code).
+    if (data?.requires_2fa) return data;
+
     if (data?.token) localStorage.setItem(TOKEN_KEY, data.token);
     if (data?.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
 
+    return data;
+}
+
+export async function loginWith2FA(tempToken, code) {
+    const data = await httpClient("/login/2fa", {
+        method: "POST",
+        body: JSON.stringify({ temp_token: tempToken, code }),
+    });
+    if (data?.token) localStorage.setItem(TOKEN_KEY, data.token);
+    if (data?.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
     return data;
 }
 
