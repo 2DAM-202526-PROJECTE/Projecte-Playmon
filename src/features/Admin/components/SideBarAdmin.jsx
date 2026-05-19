@@ -17,11 +17,11 @@ const adminItems = [
     label: "Multimèdia",
     Icon: HiRectangleGroup,
   },
-  {
-    to: "/dashboard/notificacions",
-    label: "Notificacions",
-    Icon: HiBell,
-  },
+  // {
+  //   to: "/dashboard/notificacions",
+  //   label: "Notificacions",
+  //   Icon: HiBell,
+  // },
 ];
 
 export default function SideBarAdmin() {
