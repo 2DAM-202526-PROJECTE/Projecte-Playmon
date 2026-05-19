@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { HiXMark, HiCloudArrowUp, HiFilm, HiPhoto, HiCheckCircle, HiPlus } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
-import { uploadVideo, updateVideo } from '@/api/videosApi'
+import { uploadVideoDirect, updateVideo, MAX_VIDEO_SIZE } from '@/api/videosApi'
 
 const PRESET_CATEGORIES = [
     'Acció', 'Comèdia', 'Drama', 'Thriller', 'Terror',
@@ -79,6 +79,7 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
     const [errors, setErrors] = useState({})
     const [saving, setSaving] = useState(false)
     const [uploadError, setUploadError] = useState(null)
+    const [uploadProgress, setUploadProgress] = useState(0)
 
     useEffect(() => {
         if (thumbFile) {
@@ -92,7 +93,13 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
         const e = {}
         if (!title.trim()) e.title = 'El títol és obligatori'
         if (!description.trim()) e.description = 'La descripció és obligatòria'
-        if (!isEditing && !videoFile) e.video = 'Selecciona un fitxer de vídeo'
+        if (!isEditing) {
+            if (!videoFile) {
+                e.video = 'Selecciona un fitxer de vídeo'
+            } else if (videoFile.size > MAX_VIDEO_SIZE) {
+                e.video = `Vídeo massa gran (${(videoFile.size / 1024 / 1024).toFixed(1)} MB). Màxim 100 MB.`
+            }
+        }
         return e
     }
 
@@ -103,6 +110,7 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
 
         setSaving(true)
         setUploadError(null)
+        setUploadProgress(0)
 
         try {
             let savedVideo
@@ -115,7 +123,7 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                     thumbnail: thumbFile || null,
                 })
             } else {
-                savedVideo = await uploadVideo({
+                savedVideo = await uploadVideoDirect({
                     file: videoFile,
                     thumbnail: thumbFile || null,
                     title: title.trim(),
@@ -123,6 +131,7 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                     categoria: category || null,
                     isPublic: true,
                     userId: currentUser?.id,
+                    onProgress: (p) => setUploadProgress(p),
                 })
             }
 
@@ -131,6 +140,7 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
             setUploadError(err.message || 'Error desconegut. Torna-ho a intentar.')
         } finally {
             setSaving(false)
+            setUploadProgress(0)
         }
     }
 
@@ -306,9 +316,25 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                                 accept="video/*"
                                 file={videoFile}
                                 onFile={(f) => { setVideoFile(f); setErrors(p => ({ ...p, video: null })) }}
-                                hint="MP4, MOV, AVI, MKV · Arrossega o fes clic per seleccionar"
+                                hint="MP4, MOV, AVI, MKV · Màxim 100 MB"
                             />
                             {errors.video && <p className="text-red-400 text-xs mt-1">{errors.video}</p>}
+                        </div>
+                    )}
+
+                    {/* Barra de progrés */}
+                    {saving && !isEditing && uploadProgress > 0 && (
+                        <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                            <div className="flex items-center justify-between text-xs text-white/70 mb-2">
+                                <span>Pujant a Cloudinary…</span>
+                                <span className="font-mono text-[#CC8400]">{uploadProgress}%</span>
+                            </div>
+                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[#CC8400] transition-all duration-200"
+                                    style={{ width: `${uploadProgress}%` }}
+                                />
+                            </div>
                         </div>
                     )}
 
