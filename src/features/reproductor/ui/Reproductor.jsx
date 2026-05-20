@@ -134,7 +134,7 @@ export default function Reproductor({
 
   useEffect(() => {
     wakeControls();
-  }, [state.isPlaying, state.currentTime, state.sheet, wakeControls]);
+  }, [state.isPlaying, state.sheet, wakeControls]);
 
   const visible =
     overlayMode === "hidden"

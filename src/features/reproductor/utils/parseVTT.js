@@ -27,7 +27,7 @@ export function parseVTT(raw) {
     if (headerIdx === -1) continue;
 
     const [startRaw, endRawTail] = lines[headerIdx].split("-->");
-    const endRaw = (endRawTail || "").split(/\s+/)[0];
+    const endRaw = (endRawTail || "").trim().split(/\s+/)[0];
     const start = tsToSeconds(startRaw);
     const end = tsToSeconds(endRaw);
     if (Number.isNaN(start) || Number.isNaN(end) || end <= start) continue;

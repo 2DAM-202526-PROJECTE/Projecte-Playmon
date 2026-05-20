@@ -72,15 +72,25 @@ export default function PantallaReproduccio() {
     (async () => {
       try {
         const subs = await getVideoSubtitles(currentId);
+        console.log('[subtitles] list for video', currentId, subs);
         if (!subs.length) { if (!cancelled) setCues([]); return; }
         const pref = subs.find((s) => s.lang === 'ca') || subs.find((s) => s.lang === 'es') || subs[0];
-        if (!pref?.vtt_url) return;
+        if (!pref?.vtt_url) {
+          console.warn('[subtitles] no vtt_url in preferred subtitle', pref);
+          return;
+        }
+        console.log('[subtitles] fetching VTT', pref.vtt_url);
         const r = await fetch(pref.vtt_url);
-        if (!r.ok) return;
+        if (!r.ok) {
+          console.warn('[subtitles] VTT fetch failed', r.status, pref.vtt_url);
+          return;
+        }
         const text = await r.text();
         const parsed = parseVTT(text);
+        console.log('[subtitles] parsed cues:', parsed.length);
         if (!cancelled) setCues(parsed);
-      } catch {
+      } catch (err) {
+        console.error('[subtitles] load error', err);
         if (!cancelled) setCues([]);
       }
     })();
