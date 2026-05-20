@@ -27,6 +27,27 @@ export function updateSecuritySettings(payload) {
     });
 }
 
+export function verifyCurrentPassword(currentPassword) {
+    return httpClient("/users/me/password/verify", {
+        method: "POST",
+        body: JSON.stringify({ current_password: currentPassword }),
+    });
+}
+
+export function requestPasswordReset(email) {
+    return httpClient("/password-reset/request", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+    });
+}
+
+export function confirmPasswordReset(token, newPassword) {
+    return httpClient("/password-reset/confirm", {
+        method: "POST",
+        body: JSON.stringify({ token, new_password: newPassword }),
+    });
+}
+
 export function changePassword(currentPassword, newPassword) {
     return httpClient("/users/me/password", {
         method: "POST",

@@ -5,7 +5,7 @@ export { API_BASE_URL };
 
 // Endpoints públics: les seves 401 NO han de provocar logout
 // (ex.: el propi POST /login retorna 401 amb credencials incorrectes).
-const PUBLIC_PATHS = ["/login", "/login/2fa"];
+const PUBLIC_PATHS = ["/login", "/login/2fa", "/password-reset/request", "/password-reset/confirm"];
 
 function isPublicPath(path) {
     return PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}?`));

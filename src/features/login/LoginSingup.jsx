@@ -260,7 +260,10 @@ export const LoginSingup = () => {
 
                 {action === "Iniciar Sessió" && (
                     <div className="mt-4 text-right">
-                        <div className="text-sm text-gray-400 hover:text-[#CC8400] cursor-pointer transition-colors duration-300">
+                        <div
+                            onClick={() => navigate("/oblidat-contrasenya")}
+                            className="text-sm text-gray-400 hover:text-[#CC8400] cursor-pointer transition-colors duration-300"
+                        >
                             Contrasenya oblidada? <span className="text-[#CC8400] font-semibold">Fes Clic Aqui!</span>
                         </div>
                     </div>

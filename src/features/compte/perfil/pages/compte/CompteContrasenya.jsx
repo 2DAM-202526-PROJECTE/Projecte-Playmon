@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/features/compte/perfil/components/toast/ProveidorToast";
-import { changePassword } from "@/api/securityApi";
+import { changePassword, verifyCurrentPassword } from "@/api/securityApi";
 
 export default function CompteContrasenya() {
   const { mostraToast } = useToast();
@@ -43,16 +43,27 @@ export default function CompteContrasenya() {
       mostraToast({ tipus: "error", titol: "Error", missatge: msg, duracio: 3500 });
       return;
     }
-    // La verificació real es fa al pas 2 (POST /users/me/password).
-    // Aquí només passem al pas 2 confiant que ha introduït alguna cosa.
-    setError("");
-    setPas(2);
-    mostraToast({
-      tipus: "info",
-      titol: "Introdueix la nova contrasenya",
-      missatge: "La contrasenya actual es verificarà en guardar.",
-      duracio: 2500,
-    });
+
+    try {
+      setCarregant(true);
+      setError("");
+
+      await verifyCurrentPassword(contrasenyaActual.trim());
+
+      setPas(2);
+      mostraToast({
+        tipus: "info",
+        titol: "Identitat verificada",
+        missatge: "Ara introdueix la nova contrasenya.",
+        duracio: 2500,
+      });
+    } catch (err) {
+      const m = err?.message ?? "La contrasenya actual no és correcta.";
+      setError(m);
+      mostraToast({ tipus: "error", titol: "Contrasenya incorrecta", missatge: m, duracio: 3500 });
+    } finally {
+      setCarregant(false);
+    }
   };
 
   const handleCanviar = async (e) => {

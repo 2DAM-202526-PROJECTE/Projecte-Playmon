@@ -8,6 +8,8 @@ import {
 // Pantalles
 import PantallaReproduccio from '@/features/reproductor/ui/PantallaReproduccio.jsx';
 import LoginSingup from '@/features/login/LoginSingup.jsx'
+import OblidatContrasenya from '@/features/login/OblidatContrasenya.jsx'
+import RestablirContrasenya from '@/features/login/RestablirContrasenya.jsx'
 import AdminDashboard from '@/features/Admin/Dashboard'
 import CompteLayout from '@/features/compte/perfil/layout/CompteLayout.jsx';
 import CompteInici from "@/features/compte/perfil/pages/compte/CompteInici.jsx";
@@ -95,6 +97,8 @@ const App = () => {
           <Route path="/login"
             element={<LoginSingup />}
           />
+          <Route path="/oblidat-contrasenya" element={<OblidatContrasenya />} />
+          <Route path="/restablir-contrasenya" element={<RestablirContrasenya />} />
           <Route path="/dashboard" element={<ProtectedRoute element={<AdminDashboard />} requiredRole="admin" />}>
             <Route index element={<Navigate to="stats" replace />} />
             <Route path="stats" element={<AdminStats />} />
