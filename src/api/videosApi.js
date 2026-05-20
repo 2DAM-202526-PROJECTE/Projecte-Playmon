@@ -66,7 +66,7 @@ function uploadFileToCloudinary({ file, signature, onProgress }) {
   });
 }
 
-async function registerUploadedVideo({ videoUrl, fileSize, thumbnail, title, description, categoria, isPublic, userId }) {
+async function registerUploadedVideo({ videoUrl, fileSize, thumbnail, title, description, categoria, isPublic, userId, subtitle, subtitleLang }) {
   const token = localStorage.getItem("authToken");
   const headers = { "X-User-ID": String(userId) };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -79,6 +79,10 @@ async function registerUploadedVideo({ videoUrl, fileSize, thumbnail, title, des
   fd.append("is_public", isPublic ? "true" : "false");
   if (categoria) fd.append("categoria", categoria);
   if (thumbnail) fd.append("thumbnail", thumbnail);
+  if (subtitle) {
+    fd.append("subtitle", subtitle);
+    fd.append("subtitle_lang", subtitleLang || "ca");
+  }
 
   const r = await fetch(`${API_BASE_URL}/videos/register`, {
     method: "POST", headers, body: fd,
@@ -92,7 +96,7 @@ async function registerUploadedVideo({ videoUrl, fileSize, thumbnail, title, des
   return data;
 }
 
-export async function uploadVideoDirect({ file, thumbnail, title, description, categoria, isPublic = true, userId, onProgress }) {
+export async function uploadVideoDirect({ file, thumbnail, subtitle, subtitleLang, title, description, categoria, isPublic = true, userId, onProgress }) {
   if (!file) throw new Error("Cal seleccionar un fitxer de vídeo");
   if (!userId) throw new Error("No s'ha pogut identificar l'usuari");
   if (file.size > MAX_VIDEO_SIZE) {
@@ -112,12 +116,47 @@ export async function uploadVideoDirect({ file, thumbnail, title, description, c
     videoUrl,
     fileSize: file.size,
     thumbnail,
+    subtitle,
+    subtitleLang,
     title,
     description,
     categoria,
     isPublic,
     userId,
   });
+}
+
+export async function getVideoSubtitles(videoId) {
+  if (!videoId) return [];
+  const token = localStorage.getItem("authToken");
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const r = await fetch(`${API_BASE_URL}/videos/${videoId}/subtitles`, { headers });
+  if (!r.ok) return [];
+  const data = await r.json().catch(() => null);
+  return data?.subtitles || [];
+}
+
+export async function uploadVideoSubtitle(videoId, file, lang = "ca") {
+  if (!videoId || !file) throw new Error("Falten paràmetres");
+  const token = localStorage.getItem("authToken");
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("lang", lang);
+
+  const r = await fetch(`${API_BASE_URL}/videos/${videoId}/subtitles`, {
+    method: "POST", headers, body: fd,
+  });
+  const data = await r.json().catch(() => null);
+  if (!r.ok) {
+    const err = new Error(data?.error || `HTTP ${r.status}`);
+    err.status = r.status;
+    throw err;
+  }
+  return data;
 }
 
 export async function uploadVideo({ file, thumbnail, title, description, categoria, isPublic = true, userId, username }) {

@@ -6,6 +6,8 @@ import { useSeguirViendo } from "@/context/SeguirViendoContext";
 import { useHistorial } from "@/context/HistorialContext";
 import { usePlaymonHistorial } from "@/context/PlaymonHistorialContext";
 import { usePlaymonSeguirViendo } from "@/context/PlaymonSeguirViendoContext";
+import { getVideoSubtitles } from "@/api/videosApi";
+import { parseVTT } from "../utils/parseVTT";
 
 export default function PantallaReproduccio() {
   const params = useParams();
@@ -61,6 +63,29 @@ export default function PantallaReproduccio() {
     didSetInitialTime.current = true;
     setInitialTime(getPlaymonProgress(currentId));
   }, [isOriginal, svLoading, getPlaymonProgress, currentId]);
+
+  const [cues, setCues] = useState([]);
+
+  useEffect(() => {
+    if (!isOriginal || !currentId) { setCues([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const subs = await getVideoSubtitles(currentId);
+        if (!subs.length) { if (!cancelled) setCues([]); return; }
+        const pref = subs.find((s) => s.lang === 'ca') || subs.find((s) => s.lang === 'es') || subs[0];
+        if (!pref?.vtt_url) return;
+        const r = await fetch(pref.vtt_url);
+        if (!r.ok) return;
+        const text = await r.text();
+        const parsed = parseVTT(text);
+        if (!cancelled) setCues(parsed);
+      } catch {
+        if (!cancelled) setCues([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isOriginal, currentId]);
 
   const handleTimeUpdate = useCallback((time, duration) => {
     if (!video || isFinishedRef.current) return;
@@ -152,6 +177,7 @@ export default function PantallaReproduccio() {
         titol={video.titol}
         poster={video.poster}
         fonts={video.fonts}
+        cues={cues}
         initialTime={initialTime}
         onTimeUpdate={handleTimeUpdate}
         onTornar={() => navigate(-1)}

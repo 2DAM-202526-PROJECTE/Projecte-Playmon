@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { HiXMark, HiCloudArrowUp, HiFilm, HiPhoto, HiCheckCircle, HiPlus } from 'react-icons/hi2'
+import { HiXMark, HiCloudArrowUp, HiFilm, HiPhoto, HiCheckCircle, HiPlus, HiLanguage } from 'react-icons/hi2'
 import { getCurrentUser } from '@/api/authApi'
 import { uploadVideoDirect, updateVideo, MAX_VIDEO_SIZE } from '@/api/videosApi'
 
@@ -76,10 +76,21 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
     const [videoFile, setVideoFile] = useState(null)
     const [thumbFile, setThumbFile] = useState(null)
     const [thumbPreview, setThumbPreview] = useState(initialData?.thumbnailDataUrl || initialData?.thumbnail_url || null)
+    const [subtitleFile, setSubtitleFile] = useState(null)
+    const [subtitleLang, setSubtitleLang] = useState('ca')
     const [errors, setErrors] = useState({})
     const [saving, setSaving] = useState(false)
     const [uploadError, setUploadError] = useState(null)
     const [uploadProgress, setUploadProgress] = useState(0)
+
+    const SUBTITLE_LANGS = [
+        { code: 'ca', label: 'Català' },
+        { code: 'es', label: 'Español' },
+        { code: 'en', label: 'English' },
+        { code: 'fr', label: 'Français' },
+        { code: 'pt', label: 'Português' },
+    ]
+    const MAX_SUBTITLE_SIZE = 2 * 1024 * 1024
 
     useEffect(() => {
         if (thumbFile) {
@@ -98,6 +109,14 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                 e.video = 'Selecciona un fitxer de vídeo'
             } else if (videoFile.size > MAX_VIDEO_SIZE) {
                 e.video = `Vídeo massa gran (${(videoFile.size / 1024 / 1024).toFixed(1)} MB). Màxim 100 MB.`
+            }
+        }
+        if (subtitleFile) {
+            const name = (subtitleFile.name || '').toLowerCase()
+            if (!name.endsWith('.vtt') && !name.endsWith('.srt')) {
+                e.subtitle = 'Subtítols han de ser .vtt o .srt'
+            } else if (subtitleFile.size > MAX_SUBTITLE_SIZE) {
+                e.subtitle = `Fitxer massa gran (${(subtitleFile.size / 1024).toFixed(0)} KB). Màxim 2 MB.`
             }
         }
         return e
@@ -126,6 +145,8 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                 savedVideo = await uploadVideoDirect({
                     file: videoFile,
                     thumbnail: thumbFile || null,
+                    subtitle: subtitleFile || null,
+                    subtitleLang,
                     title: title.trim(),
                     description: description.trim(),
                     categoria: category || null,
@@ -365,6 +386,67 @@ export default function VideoFormModal({ onClose, onSave, initialData }) {
                             />
                         )}
                     </div>
+
+                    {/* Subtítols (només en creació) */}
+                    {!isEditing && (
+                        <div>
+                            <label className="block text-white/70 text-sm font-medium mb-1.5">
+                                Subtítols <span className="text-white/30 font-normal">(opcional, .vtt o .srt)</span>
+                            </label>
+
+                            {subtitleFile ? (
+                                <div className="rounded-xl border border-[#CC8400]/40 bg-[#CC8400]/5 p-3 flex items-center gap-3">
+                                    <HiLanguage className="text-[#CC8400] text-xl shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white/90 text-sm font-medium truncate">{subtitleFile.name}</p>
+                                        <p className="text-white/40 text-xs">{(subtitleFile.size / 1024).toFixed(1)} KB</p>
+                                    </div>
+                                    <select
+                                        value={subtitleLang}
+                                        onChange={(e) => setSubtitleLang(e.target.value)}
+                                        className="bg-white/8 border border-white/15 rounded-lg px-2 py-1 text-white text-xs outline-none focus:border-[#CC8400]/60"
+                                    >
+                                        {SUBTITLE_LANGS.map((l) => (
+                                            <option key={l.code} value={l.code} className="bg-[#111111]">{l.label}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setSubtitleFile(null); setErrors(p => ({ ...p, subtitle: null })) }}
+                                        className="w-7 h-7 rounded-full bg-black/40 hover:bg-black/70 flex items-center justify-center transition-colors"
+                                    >
+                                        <HiXMark className="text-white text-sm" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <label
+                                    className="cursor-pointer rounded-xl border-2 border-dashed border-white/15 bg-white/3 hover:border-white/30 hover:bg-white/5
+                                               flex items-center gap-3 p-3 transition-all duration-200"
+                                >
+                                    <input
+                                        type="file"
+                                        accept=".vtt,.srt,text/vtt"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0]
+                                            if (f) { setSubtitleFile(f); setErrors(p => ({ ...p, subtitle: null })) }
+                                        }}
+                                    />
+                                    <div className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center">
+                                        <HiLanguage className="text-white/50 text-xl" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-white/80 text-sm font-medium">Afegir subtítols</p>
+                                        <p className="text-white/40 text-xs">.vtt o .srt · màxim 2 MB</p>
+                                    </div>
+                                    <span className="text-[#CC8400] text-xs border border-[#CC8400]/40 rounded-full px-3 py-1">
+                                        Seleccionar
+                                    </span>
+                                </label>
+                            )}
+                            {errors.subtitle && <p className="text-red-400 text-xs mt-1">{errors.subtitle}</p>}
+                        </div>
+                    )}
 
                     {/* Botons */}
                     <div className="flex gap-3 pt-2">

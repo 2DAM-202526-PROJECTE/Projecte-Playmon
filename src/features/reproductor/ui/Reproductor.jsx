@@ -41,6 +41,15 @@ export default function Reproductor({
     subSyncMs: 0,
   });
 
+  const subLangAutoSet = useRef(false);
+  useEffect(() => {
+    if (subLangAutoSet.current) return;
+    if (cues && cues.length > 0) {
+      subLangAutoSet.current = true;
+      setSubState((s) => (s.subLang === "off" ? { ...s, subLang: "ca" } : s));
+    }
+  }, [cues]);
+
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
