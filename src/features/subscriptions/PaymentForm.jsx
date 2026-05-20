@@ -192,36 +192,6 @@ const PaymentFormInner = ({
   return (
     <div className="max-w-2xl mx-auto space-y-4">
 
-      {/* Panel targetes de test */}
-      <div className="rounded-2xl bg-[#0f1f0f]/80 border border-emerald-500/20 p-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Stripe Test Mode — Targetes de prova</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
-            <span className="text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">✅ Pagament correcte</span>
-            <span className="text-white tracking-widest">4242 4242 4242 4242</span>
-            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
-          </div>
-          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
-            <span className="text-rose-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">❌ Rebutjat</span>
-            <span className="text-white tracking-widest">4000 0000 0000 0002</span>
-            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
-          </div>
-          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
-            <span className="text-amber-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">🔐 Requereix autenticació</span>
-            <span className="text-white tracking-widest">4000 0025 0000 3155</span>
-            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
-          </div>
-          <div className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2 border border-white/5">
-            <span className="text-sky-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">💳 Fons insuficients</span>
-            <span className="text-white tracking-widest">4000 0000 0000 9995</span>
-            <span className="text-white/40">Qualsevol data futura · Qualsevol CVV</span>
-          </div>
-        </div>
-      </div>
-
       {/* Formulari de pagament */}
       <div className="bg-[#1A1A1A]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#CC8400] via-[#E65100] to-[#CC8400]"></div>
